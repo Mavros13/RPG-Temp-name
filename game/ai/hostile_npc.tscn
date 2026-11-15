@@ -1,0 +1,38 @@
+[gd_scene load_steps=6 format=3 uid="uid://bg7w0h1j2hqx3"]
+
+[ext_resource type="Script" uid="uid://lqpjr3y61ng7" path="res://game/ai/hostile_npc.gd" id="1_shbnl"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_yswlr"]
+radius = 0.4
+height = 1.6
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pg7gu"]
+albedo_color = Color(0.7, 0.12, 0.12, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_8viio"]
+material = SubResource("StandardMaterial3D_pg7gu")
+radius = 0.4
+height = 1.6
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_detect"]
+radius = 6.0
+
+[node name="HostileNpc" type="CharacterBody3D" groups=["hostile"]]
+motion_mode = 1
+script = ExtResource("1_shbnl")
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("CapsuleShape3D_yswlr")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+mesh = SubResource("CapsuleMesh_8viio")
+
+[node name="Detection" type="Area3D" parent="."]
+collision_layer = 0
+monitorable = false
+
+[node name="Shape" type="CollisionShape3D" parent="Detection"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("SphereShape3D_detect")
