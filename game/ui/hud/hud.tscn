@@ -1,0 +1,101 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" uid="uid://dvcft4aikjdwy" path="res://game/ui/hud/hud.gd" id="1_d4vpa"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_l7e5k"]
+content_margin_left = 12.0
+content_margin_top = 12.0
+content_margin_right = 12.0
+content_margin_bottom = 12.0
+bg_color = Color(0.09, 0.1, 0.13, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.72, 0.58, 0.32, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="Hud" type="CanvasLayer" unique_id=296399632]
+layer = 10
+script = ExtResource("1_d4vpa")
+
+[node name="Panel" type="PanelContainer" parent="." unique_id=1709669099]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 228.0
+offset_bottom = 128.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_l7e5k")
+
+[node name="Margin" type="MarginContainer" parent="Panel" unique_id=1572055148]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 0
+
+[node name="Stats" type="VBoxContainer" parent="Panel/Margin" unique_id=859804975]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="HealthRow" type="HBoxContainer" parent="Panel/Margin/Stats" unique_id=300788621]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="HealthName" type="Label" parent="Panel/Margin/Stats/HealthRow" unique_id=874918683]
+custom_minimum_size = Vector2(88, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.76, 0.7, 1)
+text = "Health"
+
+[node name="HealthValue" type="Label" parent="Panel/Margin/Stats/HealthRow" unique_id=962114277]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.93, 0.84, 0.55, 1)
+text = "20"
+horizontal_alignment = 2
+
+[node name="AttackRow" type="HBoxContainer" parent="Panel/Margin/Stats" unique_id=737313994]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="AttackName" type="Label" parent="Panel/Margin/Stats/AttackRow" unique_id=1404614234]
+custom_minimum_size = Vector2(88, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.76, 0.7, 1)
+text = "Attack"
+
+[node name="AttackValue" type="Label" parent="Panel/Margin/Stats/AttackRow" unique_id=1759055883]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.93, 0.84, 0.55, 1)
+text = "4"
+horizontal_alignment = 2
+
+[node name="DefenseRow" type="HBoxContainer" parent="Panel/Margin/Stats" unique_id=327653269]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="DefenseName" type="Label" parent="Panel/Margin/Stats/DefenseRow" unique_id=1144124623]
+custom_minimum_size = Vector2(88, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.76, 0.7, 1)
+text = "Defense"
+
+[node name="DefenseValue" type="Label" parent="Panel/Margin/Stats/DefenseRow" unique_id=826534477]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.93, 0.84, 0.55, 1)
+text = "2"
+horizontal_alignment = 2
