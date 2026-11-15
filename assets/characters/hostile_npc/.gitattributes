@@ -1,0 +1,2 @@
+# Binary mesh payload. The .gltf beside it stays text.
+hostile_npc.bin filter=lfs diff=lfs merge=lfs -text
