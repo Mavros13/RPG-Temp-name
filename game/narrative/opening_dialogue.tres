@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="DialogueData" format=3]
+
+[ext_resource type="Script" uid="uid://bljvrauadj4c" path="res://game/narrative/dialogue.gd" id="1_7i6oe"]
+[ext_resource type="Resource" path="res://game/narrative/opening_quest.tres" id="2_8cb3v"]
+
+[resource]
+script = ExtResource("1_7i6oe")
+id = "dialogue_opening"
+speaker = "Keeper Alden"
+lines = PackedStringArray("The Dreamforge has gone cold, and you are the first through the door.", "Walk the inner ring and mark every brazier that still answers.", "Come back when the ring is marked. That is the opening watch.")
+starts_quest = ExtResource("2_8cb3v")

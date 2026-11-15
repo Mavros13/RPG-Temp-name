@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="QuestData" format=3]
+
+[ext_resource type="Script" uid="uid://x5wf65h3d8df" path="res://game/narrative/quest.gd" id="1_sb8tj"]
+
+[resource]
+script = ExtResource("1_sb8tj")
+id = "quest_opening"
+objective_text = "Walk the inner ring of the Dreamforge and mark every brazier that still answers."
