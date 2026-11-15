@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="InventoryData" format=3]
+
+[ext_resource type="Script" path="res://game/rpg/item_data.gd" id="1_ksq6e"]
+[ext_resource type="Resource" path="res://game/rpg/items/rusty_sword.tres" id="2_sxyky"]
+[ext_resource type="Resource" path="res://game/rpg/items/leather_vest.tres" id="3_mt5dc"]
+[ext_resource type="Resource" path="res://game/rpg/items/minor_potion.tres" id="4_lm8kg"]
+[ext_resource type="Script" path="res://game/rpg/inventory_data.gd" id="5_1xwrt"]
+
+[resource]
+script = ExtResource("5_1xwrt")
+items = Array[ExtResource("1_ksq6e")]([ExtResource("2_sxyky"), ExtResource("3_mt5dc"), ExtResource("4_lm8kg")])

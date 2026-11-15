@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://game/rpg/core_stats.gd" id="1_du6wb"]
+[ext_resource type="Script" path="res://game/rpg/item_data.gd" id="2_2tnwi"]
+
+[sub_resource type="Resource" id="Resource_cjamg"]
+script = ExtResource("1_du6wb")
+attack = 3
+
+[resource]
+script = ExtResource("2_2tnwi")
+item_name = "Rusty Sword"
+modifiers = SubResource("Resource_cjamg")
