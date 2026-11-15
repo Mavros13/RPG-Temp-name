@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="FollowupQuestData" format=3]
+
+[ext_resource type="Script" uid="uid://bl2ffw3oj0uly" path="res://game/narrative/followups/followup_quest.gd" id="1_quest"]
+[ext_resource type="Resource" path="res://game/narrative/followups/followup_cold_names_dialogue.tres" id="2_dlg"]
+
+[resource]
+script = ExtResource("1_quest")
+id = "quest_followup_cold_names"
+title = "What the Cold Braziers Keep"
+objectives = PackedStringArray("Return to the inner ring where the answering braziers are marked.", "Read the mark on every brazier that did not answer.", "Bring Keeper Alden the names those dark marks still hold.")
+dialogue = ExtResource("2_dlg")
