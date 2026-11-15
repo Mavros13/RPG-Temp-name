@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="FollowupDialogueData" format=3]
+
+[ext_resource type="Script" uid="uid://bfmk1dclg3ls4" path="res://game/narrative/followups/followup_dialogue.gd" id="1_dlg"]
+
+[resource]
+script = ExtResource("1_dlg")
+id = "dialogue_followup_cold_names"
+speaker = "Keeper Alden"
+lines = PackedStringArray("The opening watch is done. Every brazier that still answers is marked.", "Walk the inner ring again. Read the mark on every brazier that stayed dark.", "Bring me those names. A silent brazier can still keep a keeper's name.")

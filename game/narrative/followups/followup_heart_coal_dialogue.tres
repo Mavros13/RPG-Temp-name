@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="FollowupDialogueData" format=3]
+
+[ext_resource type="Script" uid="uid://bfmk1dclg3ls4" path="res://game/narrative/followups/followup_dialogue.gd" id="1_dlg"]
+
+[resource]
+script = ExtResource("1_dlg")
+id = "dialogue_followup_heart_coal"
+speaker = "Keeper Alden"
+lines = PackedStringArray("The cold braziers have given up their names. Leave that list with me.", "Take a coal from a brazier on the inner ring that still answers.", "Carry it to the Dreamforge heart and set it there. If the forge still knows us, the heart will answer.")

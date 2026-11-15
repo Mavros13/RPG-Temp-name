@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="FollowupQuestData" format=3]
+
+[ext_resource type="Script" uid="uid://bl2ffw3oj0uly" path="res://game/narrative/followups/followup_quest.gd" id="1_quest"]
+[ext_resource type="Resource" path="res://game/narrative/followups/followup_heart_coal_dialogue.tres" id="2_dlg"]
+
+[resource]
+script = ExtResource("1_quest")
+id = "quest_followup_heart_coal"
+title = "A Coal for the Heart"
+objectives = PackedStringArray("Take one coal from an inner-ring brazier that still answers.", "Carry that coal to the Dreamforge heart.", "Set the coal in the heart and wait for it to answer.")
+dialogue = ExtResource("2_dlg")
