@@ -26,7 +26,7 @@ static var announce_fall := false
 
 var _health: Node
 var _listed_coal := false
-var _listed_potion := false
+var _listed_potion := 0
 var _room_paused := false
 var _quieted: Array[AudioStreamPlayer3D] = []
 var _fall_left := 0.0
@@ -298,9 +298,10 @@ func _show_saved_quest() -> void:
 
 
 func _drink_potion() -> void:
-	if not PACK.has_potion:
+	var left := PACK.potion_count()
+	if left <= 0:
 		return
-	PACK.has_potion = false
+	PACK.has_potion = left - 1
 	var player := get_tree().get_first_node_in_group("player")
 	if player != null:
 		var stats := player.get_node_or_null("CombatHealth")
@@ -311,7 +312,7 @@ func _drink_potion() -> void:
 
 func _sync_inventory(force: bool) -> void:
 	var carrying := QUEST.carrying_coal
-	var potion := PACK.has_potion
+	var potion := PACK.potion_count()
 	if (
 		not force
 		and inventory_items.get_child_count() > 0
@@ -326,8 +327,8 @@ func _sync_inventory(force: bool) -> void:
 		child.free()
 	for gear in ["Rusty Sword", "Leather Vest"]:
 		_add_inventory_line(gear, gear)
-	if potion:
-		_add_inventory_line(PACK.POTION, PACK.POTION)
+	for index in potion:
+		_add_inventory_line("%s%d" % [PACK.POTION, index + 1], PACK.POTION)
 	if carrying:
 		_add_inventory_line("Coal", "Coal")
 

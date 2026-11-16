@@ -1,6 +1,7 @@
 extends Node3D
 
 const QUEST := preload("res://game/world/quest_state.gd")
+const PACK := preload("res://game/world/inventory_state.gd")
 const REACH := 1.7
 
 var _hud: Node
@@ -40,9 +41,12 @@ func _try_deliver() -> void:
 		return
 	if not QUEST.deliver_coal():
 		return
+	PACK.grant_potion()
 	sync_coal(player)
 	_answer()
 	_show_answer()
+	if _hud != null and _hud.has_method("_sync_inventory"):
+		_hud.call("_sync_inventory", true)
 
 
 func _show_answer() -> void:
