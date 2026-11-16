@@ -25,8 +25,11 @@ const LEAN_ANGLE := 0.16
 const POSE_SHARPNESS := 12.0
 const GAIT_EPSILON := 0.22
 const FOOTSTEP := preload("res://game/audio/footstep.wav")
+const LAND := preload("res://game/audio/land.wav")
 const WALK_STEP := 0.46
 const SPRINT_STEP := 0.28
+const SETTLE_TIME := 0.16
+const SETTLE_DIP := 0.07
 
 @onready var model: Node3D = $Model
 @onready var camera: Camera3D = $Camera3D
@@ -43,7 +46,11 @@ var _bob_height := 0.0
 var _lean_pitch := 0.0
 var _lean_roll := 0.0
 var _steps: AudioStreamPlayer3D
+var _land: AudioStreamPlayer3D
 var _step_time := 0.0
+var _pending_jump := false
+var _air_from_jump := false
+var _settle := 0.0
 
 signal footstep_played
 
@@ -65,6 +72,7 @@ func _ready() -> void:
 	_camera_arm = _orbit_distance
 	_place_camera(0.0)
 	_setup_footsteps()
+	_setup_land()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
@@ -113,14 +121,17 @@ func _physics_process(delta: float) -> void:
 	var horizontal := Vector3(velocity.x, 0.0, velocity.z).move_toward(target, rate * delta)
 	velocity.x = horizontal.x
 	velocity.z = horizontal.z
+	var started_jump := false
 	if is_on_floor():
 		if Input.is_action_just_pressed("jump"):
 			velocity.y = JUMP_VELOCITY
+			started_jump = true
 		else:
 			velocity.y = 0.0
 	else:
 		velocity.y -= float(ProjectSettings.get_setting("physics/3d/default_gravity")) * delta
 	move_and_slide()
+	_track_landing(started_jump)
 	_apply_gait(delta, Input.is_action_pressed("sprint"))
 	_update_footsteps(delta, Input.is_action_pressed("sprint"))
 
@@ -157,10 +168,47 @@ func _apply_gait(delta: float, sprinting: bool) -> void:
 		_bob_height = 0.0
 		_lean_pitch = 0.0
 		_lean_roll = 0.0
-	model.position.y = _bob_height
+	model.position.y = _bob_height + _landing_dip(delta)
 	model.rotation.x = _lean_pitch
 	model.rotation.y = _facing_yaw
 	model.rotation.z = _lean_roll
+
+
+func _track_landing(started_jump: bool) -> void:
+	var grounded := is_on_floor()
+	if started_jump:
+		_pending_jump = true
+	if not grounded and _pending_jump:
+		_pending_jump = false
+		_air_from_jump = true
+	elif grounded and _pending_jump and not started_jump:
+		_pending_jump = false
+	if grounded and _air_from_jump:
+		_air_from_jump = false
+		_play_land()
+
+
+func _play_land() -> void:
+	_settle = SETTLE_TIME
+	if _land != null:
+		_land.play()
+
+
+func _landing_dip(delta: float) -> float:
+	if _settle <= 0.0:
+		return 0.0
+	_settle = maxf(_settle - delta, 0.0)
+	var along := 1.0 - (_settle / SETTLE_TIME)
+	return -sin(along * PI) * SETTLE_DIP
+
+
+func _setup_land() -> void:
+	_land = AudioStreamPlayer3D.new()
+	_land.name = "Land"
+	_land.stream = LAND
+	_land.volume_db = -10.0
+	_land.unit_size = 4.0
+	add_child(_land)
 
 
 func _setup_footsteps() -> void:
