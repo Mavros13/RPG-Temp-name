@@ -13,7 +13,7 @@ func _ready() -> void:
 		InputMap.action_add_event(&"pause", event)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	var room := _room()
 	if room != null and room.get_node_or_null("Hud3D") == null and Input.is_action_just_pressed(&"pause"):
 		get_tree().paused = not get_tree().paused
@@ -22,6 +22,9 @@ func _process(_delta: float) -> void:
 	var steps := get_parent().get_node_or_null("Footsteps") as AudioStreamPlayer3D
 	if steps != null:
 		steps.stop()
+	var body := get_parent()
+	if body != null and body.has_method("rest_step_bob"):
+		body.rest_step_bob(delta)
 
 
 func _room() -> Node:
