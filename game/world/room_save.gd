@@ -5,6 +5,8 @@ const QUEST := preload("res://game/world/quest_state.gd")
 const PACK := preload("res://game/world/inventory_state.gd")
 const PATH := "user://room_save.cfg"
 
+static var apply_on_enter := false
+
 
 static func exists() -> bool:
 	return FileAccess.file_exists(PATH)
@@ -21,6 +23,12 @@ static func write(health: int) -> bool:
 	file.set_value("room", "soren_read", QUEST.names_read.has("Soren"))
 	file.set_value("room", "heart_answered", QUEST.delivered)
 	return file.save(PATH) == OK
+
+
+static func take_apply() -> bool:
+	var armed := apply_on_enter
+	apply_on_enter = false
+	return armed and exists()
 
 
 static func read() -> Dictionary:
