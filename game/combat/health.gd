@@ -68,6 +68,7 @@ func heal(amount: int) -> void:
 	if health > 0 and body != null and body.has_meta("defeated"):
 		body.remove_meta("defeated")
 	healed.emit(gained, health)
+	_show_damage(gained)
 
 
 func restore(amount: int) -> void:
