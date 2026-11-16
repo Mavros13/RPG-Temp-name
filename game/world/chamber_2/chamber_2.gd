@@ -14,6 +14,7 @@ const DOOR_WIDTH := 2.0
 const FLOOR_SCENE := preload("res://assets/world/first_room/stone_floor_tile.glb")
 const WALL_SCENE := preload("res://assets/world/first_room/wall_segment.glb")
 const BRAZIER_SCENE := preload("res://assets/world/first_room/brazier.glb")
+const HOSTILE_SCENE := preload("res://assets/characters/hostile_npc/hostile_npc.gltf")
 const PASSAGE := preload("res://game/world/passage.gd")
 const HUD_SCENE := preload("res://game/ui/hud_3d/hud_3d.tscn")
 const DARK_BRAZIERS := preload("res://game/world/chamber_2/dark_braziers.gd")
@@ -25,6 +26,7 @@ func _ready() -> void:
 	_build_floor()
 	_build_walls()
 	_place_braziers()
+	_place_hostile()
 	_place_dark_braziers()
 	_place_passage()
 
@@ -121,6 +123,20 @@ func _place_braziers() -> void:
 		var brazier := BRAZIER_SCENE.instantiate()
 		brazier.position = at
 		$Visuals/Braziers.add_child(brazier)
+
+
+func _place_hostile() -> void:
+	var visual := HOSTILE_SCENE.instantiate()
+	visual.rotation.y = PI
+	var body := $Hostile as Node3D
+	body.add_child(visual)
+	var shape := CollisionShape3D.new()
+	var capsule := CapsuleShape3D.new()
+	capsule.radius = 0.35
+	capsule.height = 1.7
+	shape.shape = capsule
+	shape.position = Vector3(0.0, 0.85, 0.0)
+	body.add_child(shape)
 
 
 func _place_dark_braziers() -> void:
