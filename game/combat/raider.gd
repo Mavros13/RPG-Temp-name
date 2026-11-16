@@ -16,6 +16,7 @@ const PLAYER_MAX_HEALTH := 8
 const HEALTH := preload("res://game/combat/health.gd")
 const ATTACK := preload("res://game/combat/player_attack.gd")
 const FLASH := preload("res://game/combat/hit_flash.gd")
+const HEAL_BRIGHT := preload("res://game/combat/heal_bright.gd")
 const RAIDER_FLASH := preload("res://game/combat/raider_flash.gd")
 const HUD := preload("res://game/combat/combat_hud.gd")
 const PACK := preload("res://game/world/inventory_state.gd")
@@ -50,6 +51,7 @@ func _ready() -> void:
 	_attach(_player, "CombatHealth", PLAYER_MAX_HEALTH)
 	_attach(_player, "PlayerAttack", -1)
 	_attach_flash(_player)
+	_attach_heal_bright(_player)
 	if room.get_node_or_null("CombatHud") == null:
 		var hud := HUD.new()
 		hud.name = "CombatHud"
@@ -239,6 +241,14 @@ func _attach_flash(player: Node) -> void:
 	var flash := FLASH.new()
 	flash.name = "HitFlash"
 	player.add_child(flash)
+
+
+func _attach_heal_bright(player: Node) -> void:
+	if player.get_node_or_null("HealBright") != null:
+		return
+	var glow := HEAL_BRIGHT.new()
+	glow.name = "HealBright"
+	player.add_child(glow)
 
 
 func _attach_raider_flash() -> void:
