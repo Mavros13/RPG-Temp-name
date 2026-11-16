@@ -13,6 +13,7 @@ const FLOOR_SCENE := preload("res://assets/world/first_room/stone_floor_tile.glb
 const WALL_SCENE := preload("res://assets/world/first_room/wall_segment.glb")
 const PASSAGE := preload("res://game/world/passage.gd")
 const INSCRIPTION := preload("res://game/world/alcove/inscription.gd")
+const HUD := preload("res://game/ui/hud_3d/hud_3d.gd")
 
 
 func _ready() -> void:
@@ -23,6 +24,7 @@ func _ready() -> void:
 	_build_walls()
 	_place_passage()
 	_place_inscription()
+	_show_controls()
 
 
 func _setup_lighting() -> void:
@@ -107,6 +109,20 @@ func _add_wall(parent: Node, wall_position: Vector3, yaw: float) -> void:
 
 func _place_passage() -> void:
 	PASSAGE.place(self, Vector3(DOOR_CENTER_X, 1.1, 0.35), "res://game/world/chamber_2/chamber_2.tscn", "ChamberReturn", "Back to the chamber")
+
+
+func _show_controls() -> void:
+	var layer := CanvasLayer.new()
+	layer.name = "ControlsLayer"
+	layer.layer = 10
+	add_child(layer)
+	var line := HUD._make_controls_line()
+	layer.add_child(line)
+	_refresh_controls_line.call_deferred(line)
+
+
+func _refresh_controls_line(line: Label) -> void:
+	line.text = HUD.controls_text()
 
 
 func _place_inscription() -> void:
