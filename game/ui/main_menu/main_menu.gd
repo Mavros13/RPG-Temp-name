@@ -16,6 +16,7 @@ func _ready() -> void:
 
 func _play() -> void:
 	SAVE.apply_on_enter = false
+	SAVE.reset_raiders()
 	QUEST.restore([], false, false, false, false)
 	PACK.has_potion = true
 	get_tree().change_scene_to_file(LIT_ROOM)
@@ -25,6 +26,7 @@ func _continue() -> void:
 	if not SAVE.exists():
 		return
 	SAVE.apply_on_enter = true
+	SAVE.reset_raiders()
 	get_tree().change_scene_to_file(LIT_ROOM)
 
 
