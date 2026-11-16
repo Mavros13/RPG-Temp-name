@@ -134,6 +134,11 @@ func _setup_steps() -> void:
 	_steps.volume_db = -16.0
 	_steps.unit_size = 4.0
 	add_child(_steps)
+	var watch := Node.new()
+	watch.name = "RaiderStepPause"
+	watch.process_mode = Node.PROCESS_MODE_ALWAYS
+	watch.set_script(preload("res://game/combat/raider_step_pause.gd"))
+	add_child(watch)
 
 
 func _update_steps(delta: float) -> void:
