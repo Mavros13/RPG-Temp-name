@@ -12,6 +12,7 @@ const DOOR_WIDTH := 2.0
 const FLOOR_SCENE := preload("res://assets/world/first_room/stone_floor_tile.glb")
 const WALL_SCENE := preload("res://assets/world/first_room/wall_segment.glb")
 const PASSAGE := preload("res://game/world/passage.gd")
+const INSCRIPTION := preload("res://game/world/alcove/inscription.gd")
 
 
 func _ready() -> void:
@@ -21,6 +22,7 @@ func _ready() -> void:
 	_build_floor()
 	_build_walls()
 	_place_passage()
+	_place_inscription()
 
 
 func _setup_lighting() -> void:
@@ -105,3 +107,9 @@ func _add_wall(parent: Node, wall_position: Vector3, yaw: float) -> void:
 
 func _place_passage() -> void:
 	PASSAGE.place(self, Vector3(DOOR_CENTER_X, 1.1, 0.35), "res://game/world/chamber_2/chamber_2.tscn", "ChamberReturn", "Back to the chamber")
+
+
+func _place_inscription() -> void:
+	var note := INSCRIPTION.new()
+	note.name = "Inscription"
+	add_child(note)
