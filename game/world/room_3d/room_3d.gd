@@ -6,6 +6,8 @@ const ROOM_SIZE := TILE * float(TILES)
 const PLINTH := 0.07
 const WALL_THICKNESS := 0.5
 const WALL_HEIGHT := 3.2
+const DOOR_CENTER_X := 5.0
+const DOOR_WIDTH := 2.0
 
 const FLOOR_SCENE := preload("res://assets/world/first_room/stone_floor_tile.glb")
 const WALL_SCENE := preload("res://assets/world/first_room/wall_segment.glb")
@@ -13,6 +15,7 @@ const BRAZIER_SCENE := preload("res://assets/world/first_room/brazier.glb")
 const HOSTILE_SCENE := preload("res://assets/characters/hostile_npc/hostile_npc.gltf")
 const SURFACE_SHADER := preload("res://game/world/room_3d/materials/room_surface.gdshader")
 const FIRE_SHADER := preload("res://game/world/room_3d/materials/room_fire.gdshader")
+const PASSAGE := preload("res://game/world/passage.gd")
 
 var _materials: Dictionary = {}
 
@@ -24,6 +27,7 @@ func _ready() -> void:
 	_build_walls()
 	_place_braziers()
 	_place_hostile()
+	_place_passage()
 
 
 func _setup_lighting() -> void:
@@ -80,10 +84,27 @@ func _build_bounds() -> void:
 	var along := ROOM_SIZE + 0.8
 	var mid := ROOM_SIZE * 0.5
 	var height := WALL_HEIGHT * 0.5
-	_add_box(body, Vector3(along, WALL_HEIGHT, WALL_THICKNESS), Vector3(mid, height, PLINTH - reach))
+	_add_south_opening(body, height, PLINTH - reach, ROOM_SIZE)
 	_add_box(body, Vector3(along, WALL_HEIGHT, WALL_THICKNESS), Vector3(mid, height, ROOM_SIZE - PLINTH + reach))
 	_add_box(body, Vector3(WALL_THICKNESS, WALL_HEIGHT, along), Vector3(PLINTH - reach, height, mid))
 	_add_box(body, Vector3(WALL_THICKNESS, WALL_HEIGHT, along), Vector3(ROOM_SIZE - PLINTH + reach, height, mid))
+
+
+func _add_south_opening(body: StaticBody3D, height: float, south_z: float, room_span: float) -> void:
+	var overhang := 0.4
+	var left := DOOR_CENTER_X - DOOR_WIDTH * 0.5
+	var right := DOOR_CENTER_X + DOOR_WIDTH * 0.5
+	_add_x_span(body, -overhang, left, height, south_z)
+	_add_x_span(body, right, room_span + overhang, height, south_z)
+	_add_box(body, Vector3(DOOR_WIDTH - 0.15, 0.4, 1.8), Vector3(DOOR_CENTER_X, -0.2, 0.2))
+
+
+func _add_x_span(body: StaticBody3D, x0: float, x1: float, height: float, z: float) -> void:
+	_add_box(body, Vector3(x1 - x0, WALL_HEIGHT, WALL_THICKNESS), Vector3((x0 + x1) * 0.5, height, z))
+
+
+func _place_passage() -> void:
+	PASSAGE.place(self, Vector3(DOOR_CENTER_X, 1.1, 0.35), "res://game/world/chamber_2/chamber_2.tscn", "ChamberDoor", "Second chamber")
 
 
 func _add_box(body: StaticBody3D, size: Vector3, position: Vector3) -> void:
@@ -109,7 +130,8 @@ func _build_walls() -> void:
 	var parent := $Visuals/Walls
 	for i in TILES:
 		var center := (float(i) + 0.5) * TILE
-		_add_wall(parent, Vector3(center, 0.0, 0.0), 0.0)
+		if absf(center - DOOR_CENTER_X) > 0.01:
+			_add_wall(parent, Vector3(center, 0.0, 0.0), 0.0)
 		_add_wall(parent, Vector3(center, 0.0, ROOM_SIZE), PI)
 		_add_wall(parent, Vector3(0.0, 0.0, center), PI * 0.5)
 		_add_wall(parent, Vector3(ROOM_SIZE, 0.0, center), -PI * 0.5)
