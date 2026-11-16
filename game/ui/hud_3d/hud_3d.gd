@@ -49,6 +49,8 @@ func _ready() -> void:
 		_show_fall()
 	_sync_inventory(true)
 	set_process(not _bind_health())
+	if SAVE.take_apply():
+		_load_room()
 
 
 func _physics_process(delta: float) -> void:
