@@ -31,6 +31,8 @@ const FOOTSTEP := preload("res://game/audio/footstep.wav")
 const LAND := preload("res://game/audio/land.wav")
 const WALK_STEP := 0.46
 const SPRINT_STEP := 0.28
+const STEP_BOB := 0.02
+const STEP_BOB_RETURN := 14.0
 const SETTLE_TIME := 0.16
 const SETTLE_DIP := 0.07
 
@@ -55,6 +57,7 @@ var _lean_roll := 0.0
 var _steps: AudioStreamPlayer3D
 var _land: AudioStreamPlayer3D
 var _step_time := 0.0
+var _step_bob := 0.0
 var _pending_jump := false
 var _air_from_jump := false
 var _settle := 0.0
@@ -280,6 +283,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	_ease_look(delta)
 	_ease_sprint_camera(delta)
+	_update_step_bob(delta)
 	_place_camera(delta)
 
 
@@ -307,6 +311,38 @@ func _wish_direction(input_dir: Vector2) -> Vector3:
 	else:
 		right = right.normalized()
 	return right * input_dir.x + forward * (-input_dir.y)
+
+
+func _update_step_bob(delta: float) -> void:
+	var target := _step_bob_target()
+	if absf(target) > 0.0001:
+		_step_bob = target
+		return
+	var blend := 1.0 - exp(-STEP_BOB_RETURN * delta)
+	_step_bob = lerpf(_step_bob, 0.0, blend)
+	if absf(_step_bob) < 0.0004:
+		_step_bob = 0.0
+
+
+func _step_bob_target() -> float:
+	if get_tree().paused or not is_on_floor():
+		return 0.0
+	var speed := Vector3(velocity.x, 0.0, velocity.z).length()
+	if speed <= GAIT_EPSILON:
+		return 0.0
+	var sprinting := Input.is_action_pressed("sprint") and speed > SPEED * 0.85
+	var interval := SPRINT_STEP if sprinting else WALK_STEP
+	return sin(TAU * _step_time / interval) * STEP_BOB
+
+
+func rest_step_bob(delta: float) -> void:
+	var previous := _step_bob
+	var blend := 1.0 - exp(-STEP_BOB_RETURN * delta)
+	_step_bob = lerpf(_step_bob, 0.0, blend)
+	if absf(_step_bob) < 0.0004:
+		_step_bob = 0.0
+	if camera != null:
+		camera.global_position.y += _step_bob - previous
 
 
 func _ease_sprint_camera(delta: float) -> void:
@@ -344,6 +380,7 @@ func _place_camera(delta: float) -> void:
 	var look_target := global_position + Vector3(0.0, CAMERA_LOOK_HEIGHT, 0.0)
 	if camera.global_position.distance_squared_to(look_target) > 0.01:
 		camera.look_at(look_target, Vector3.UP)
+	camera.global_position.y += _step_bob
 
 
 func _camera_clearance(pivot: Vector3, desired: Vector3) -> float:
