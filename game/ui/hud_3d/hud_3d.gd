@@ -34,6 +34,7 @@ var _quieted: Array[AudioStreamPlayer3D] = []
 var _fall_left := 0.0
 var _note: Label
 var _note_left := 0.0
+var _controls: Label
 
 
 func _ready() -> void:
@@ -49,6 +50,9 @@ func _ready() -> void:
 	menu_button.pressed.connect(_open_menu)
 	fall_label.visible = false
 	_build_note()
+	_controls = _make_controls_line()
+	add_child(_controls)
+	call_deferred("_refresh_controls")
 	if announce_fall:
 		announce_fall = false
 		_show_fall()
@@ -310,6 +314,108 @@ func _show_note(text: String) -> void:
 	_note.text = text
 	_note.visible = true
 	_note_left = NOTE_TIME
+
+
+func _refresh_controls() -> void:
+	if _controls != null:
+		_controls.text = controls_text()
+
+
+static func controls_text() -> String:
+	return "Move %s · Look Mouse · Attack %s · Interact %s · Pause %s" % [
+		_move_names(),
+		_attack_names(),
+		_key_names([&"mark"]),
+		_key_names([&"pause"]),
+	]
+
+
+static func _make_controls_line() -> Label:
+	var line := Label.new()
+	line.name = "ControlsLine"
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	line.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	line.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	line.add_theme_font_size_override("font_size", 15)
+	line.add_theme_color_override("font_color", Color(0.78, 0.74, 0.66, 0.9))
+	line.anchor_left = 0.0
+	line.anchor_top = 1.0
+	line.anchor_right = 1.0
+	line.anchor_bottom = 1.0
+	line.offset_left = 16.0
+	line.offset_top = -30.0
+	line.offset_right = -16.0
+	line.offset_bottom = -8.0
+	line.text = controls_text()
+	return line
+
+
+static func _move_names() -> String:
+	var codes := _codes([&"move_forward", &"move_left", &"move_back", &"move_right"])
+	var wasd := [KEY_W, KEY_A, KEY_S, KEY_D]
+	var arrows := [KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT]
+	var parts := PackedStringArray()
+	if _has_all(codes, wasd):
+		parts.append("WASD")
+	if _has_all(codes, arrows):
+		parts.append("Arrows")
+	for code in codes:
+		if wasd.has(code) or arrows.has(code):
+			continue
+		parts.append(OS.get_keycode_string(code))
+	return "/".join(parts)
+
+
+static func _attack_names() -> String:
+	var parts := PackedStringArray()
+	if not InputMap.has_action(&"attack"):
+		return ""
+	for event in InputMap.action_get_events(&"attack"):
+		var button := event as InputEventMouseButton
+		if button != null and button.button_index == MOUSE_BUTTON_LEFT and not parts.has("Click"):
+			parts.append("Click")
+			continue
+		var key := event as InputEventKey
+		if key == null:
+			continue
+		var label := _key_label(key.physical_keycode)
+		if not label.is_empty() and not parts.has(label):
+			parts.append(label)
+	return "/".join(parts)
+
+
+static func _key_names(actions: Array) -> String:
+	var parts := PackedStringArray()
+	for code in _codes(actions):
+		var label := _key_label(code)
+		if not label.is_empty() and not parts.has(label):
+			parts.append(label)
+	return "/".join(parts)
+
+
+static func _codes(actions: Array) -> Array[int]:
+	var found: Array[int] = []
+	for action in actions:
+		if not InputMap.has_action(StringName(action)):
+			continue
+		for event in InputMap.action_get_events(StringName(action)):
+			var key := event as InputEventKey
+			if key != null and not found.has(key.physical_keycode):
+				found.append(key.physical_keycode)
+	return found
+
+
+static func _has_all(codes: Array[int], wanted: Array) -> bool:
+	for code in wanted:
+		if not codes.has(int(code)):
+			return false
+	return true
+
+
+static func _key_label(code: int) -> String:
+	if code == KEY_ESCAPE:
+		return "Esc"
+	return OS.get_keycode_string(code)
 
 
 func _apply_saved_raider() -> void:
