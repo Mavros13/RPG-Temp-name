@@ -63,3 +63,19 @@ static func deliver_coal() -> bool:
 	delivered = true
 	carrying_coal = false
 	return true
+
+
+static func restore(marked: Array, ildra: bool, soren: bool, carrying: bool, answered: bool) -> void:
+	lit_marked = []
+	for index in marked:
+		var value := int(index)
+		if value < 0 or lit_marked.has(value):
+			continue
+		lit_marked.append(value)
+	names_read = []
+	if ildra:
+		names_read.append("Ildra")
+	if soren:
+		names_read.append("Soren")
+	carrying_coal = carrying
+	delivered = answered

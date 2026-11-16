@@ -34,3 +34,14 @@ func heal(amount: int) -> void:
 	if health > 0 and body != null and body.has_meta("defeated"):
 		body.remove_meta("defeated")
 	healed.emit(gained, health)
+
+
+func restore(amount: int) -> void:
+	health = clampi(amount, 0, max_health)
+	var body := get_parent()
+	if body == null:
+		return
+	if health > 0 and body.has_meta("defeated"):
+		body.remove_meta("defeated")
+	elif health <= 0 and body.is_in_group("player"):
+		body.set_meta("defeated", true)
