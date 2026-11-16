@@ -36,6 +36,7 @@ var _fall_left := 0.0
 var _note: Label
 var _note_left := 0.0
 var _controls: Label
+var _save_line: Label
 
 
 func _ready() -> void:
@@ -53,6 +54,8 @@ func _ready() -> void:
 	_build_note()
 	_controls = _make_controls_line()
 	add_child(_controls)
+	_save_line = _make_save_line()
+	add_child(_save_line)
 	call_deferred("_refresh_controls")
 	if announce_fall:
 		announce_fall = false
@@ -309,9 +312,9 @@ func _build_note() -> void:
 	_note.anchor_right = 0.5
 	_note.anchor_bottom = 1.0
 	_note.offset_left = -140.0
-	_note.offset_top = -72.0
+	_note.offset_top = -94.0
 	_note.offset_right = 140.0
-	_note.offset_bottom = -28.0
+	_note.offset_bottom = -50.0
 	_note.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	add_child(_note)
 
@@ -325,6 +328,8 @@ func _show_note(text: String) -> void:
 func _refresh_controls() -> void:
 	if _controls != null:
 		_controls.text = controls_text()
+	if _save_line != null:
+		_save_line.text = save_line_text()
 
 
 static func controls_text() -> String:
@@ -339,9 +344,24 @@ static func controls_text() -> String:
 	]
 
 
+static func save_line_text() -> String:
+	return "Save %s · Load %s" % [
+		_key_names([&"quick_save"]),
+		_key_names([&"quick_load"]),
+	]
+
+
 static func _make_controls_line() -> Label:
+	return _make_bottom_line("ControlsLine", -52.0, -30.0, controls_text())
+
+
+static func _make_save_line() -> Label:
+	return _make_bottom_line("SaveLine", -30.0, -8.0, save_line_text())
+
+
+static func _make_bottom_line(line_name: String, top: float, bottom: float, text: String) -> Label:
 	var line := Label.new()
-	line.name = "ControlsLine"
+	line.name = line_name
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	line.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	line.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -352,10 +372,10 @@ static func _make_controls_line() -> Label:
 	line.anchor_right = 1.0
 	line.anchor_bottom = 1.0
 	line.offset_left = 16.0
-	line.offset_top = -30.0
+	line.offset_top = top
 	line.offset_right = -16.0
-	line.offset_bottom = -8.0
-	line.text = controls_text()
+	line.offset_bottom = bottom
+	line.text = text
 	return line
 
 
