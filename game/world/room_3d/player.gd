@@ -24,7 +24,7 @@ const WALK_BOB_RATE := 9.5
 const SPRINT_BOB_RATE := 16.0
 const BOB_HEIGHT := 0.06
 const SPRINT_BOB_HEIGHT := 0.08
-const LEAN_ANGLE := 0.16
+const STRAFE_LEAN := deg_to_rad(4.0)
 const POSE_SHARPNESS := 12.0
 const GAIT_EPSILON := 0.22
 const FOOTSTEP := preload("res://game/audio/footstep.wav")
@@ -175,15 +175,8 @@ func _apply_gait(delta: float, sprinting: bool) -> void:
 		var amplitude := SPRINT_BOB_HEIGHT if fast else BOB_HEIGHT
 		_bob_phase += rate * delta
 		target_height = sin(_bob_phase) * amplitude
-		var forward := Vector3(sin(_facing_yaw), 0.0, cos(_facing_yaw))
-		var right := forward.cross(Vector3.UP)
-		if right.length_squared() > 0.0001:
-			right = right.normalized()
-		else:
-			right = Vector3.RIGHT
-		var wish := flat / speed
-		target_pitch = -wish.dot(forward) * LEAN_ANGLE
-		target_roll = wish.dot(right) * LEAN_ANGLE
+		if is_on_floor():
+			target_roll = _strafe_roll(flat / speed)
 	else:
 		_bob_phase = 0.0
 	var blend := 1.0 - exp(-POSE_SHARPNESS * delta)
@@ -198,6 +191,28 @@ func _apply_gait(delta: float, sprinting: bool) -> void:
 	model.rotation.x = _lean_pitch
 	model.rotation.y = _facing_yaw
 	model.rotation.z = _lean_roll
+
+
+func _strafe_roll(wish: Vector3) -> float:
+	var forward := Vector3(sin(_aim_yaw), 0.0, cos(_aim_yaw))
+	var side := forward.cross(Vector3.UP)
+	if side.length_squared() < 0.0001:
+		return 0.0
+	side = side.normalized()
+	return clampf(wish.dot(side), -1.0, 1.0) * STRAFE_LEAN
+
+
+func rest_strafe_lean(delta: float) -> void:
+	var blend := 1.0 - exp(-POSE_SHARPNESS * delta)
+	_lean_roll = lerpf(_lean_roll, 0.0, blend)
+	_lean_pitch = lerpf(_lean_pitch, 0.0, blend)
+	if absf(_lean_roll) < 0.001:
+		_lean_roll = 0.0
+	if absf(_lean_pitch) < 0.001:
+		_lean_pitch = 0.0
+	if model != null:
+		model.rotation.x = _lean_pitch
+		model.rotation.z = _lean_roll
 
 
 func _track_landing(started_jump: bool) -> void:
