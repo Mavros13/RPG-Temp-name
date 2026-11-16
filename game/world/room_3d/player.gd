@@ -1,9 +1,11 @@
 extends CharacterBody3D
 
 const SPEED := 3.6
+const SPRINT_SPEED := 6.4
 const ACCELERATION := 12.0
 const DECELERATION := 18.0
 const TURN_RATE := 14.0
+const JUMP_VELOCITY := 4.8
 
 const MODEL_SCENE := preload("res://assets/characters/player/player_adventurer.glb")
 
@@ -56,6 +58,8 @@ func _ensure_move_actions() -> void:
 	_bind_action("move_back", [KEY_S, KEY_DOWN])
 	_bind_action("move_left", [KEY_A, KEY_LEFT])
 	_bind_action("move_right", [KEY_D, KEY_RIGHT])
+	_bind_action("sprint", [KEY_SHIFT])
+	_bind_action("jump", [KEY_CTRL])
 
 
 func _bind_action(action: StringName, keys: Array) -> void:
@@ -71,10 +75,11 @@ func _bind_action(action: StringName, keys: Array) -> void:
 func _physics_process(delta: float) -> void:
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var direction := _wish_direction(input_dir)
+	var top_speed := SPRINT_SPEED if Input.is_action_pressed("sprint") else SPEED
 	var target := Vector3.ZERO
 	if direction.length_squared() > 0.0001:
 		direction = direction.normalized()
-		target = direction * SPEED
+		target = direction * top_speed
 		_facing_yaw = rotate_toward(_facing_yaw, atan2(direction.x, direction.z), TURN_RATE * delta)
 	model.rotation.y = _facing_yaw
 	var rate := ACCELERATION if target.length_squared() > 0.0 else DECELERATION
@@ -82,7 +87,10 @@ func _physics_process(delta: float) -> void:
 	velocity.x = horizontal.x
 	velocity.z = horizontal.z
 	if is_on_floor():
-		velocity.y = 0.0
+		if Input.is_action_just_pressed("jump"):
+			velocity.y = JUMP_VELOCITY
+		else:
+			velocity.y = 0.0
 	else:
 		velocity.y -= float(ProjectSettings.get_setting("physics/3d/default_gravity")) * delta
 	move_and_slide()
