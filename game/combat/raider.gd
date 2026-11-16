@@ -4,6 +4,7 @@ const SPEED := 2.4
 const CONTACT_RANGE := 1.05
 const CONTACT_COOLDOWN := 0.8
 const CONTACT_TELL := 0.33
+const TELL_LEAN := -0.42
 const MAX_HEALTH := 14
 const PLAYER_MAX_HEALTH := 8
 
@@ -19,6 +20,7 @@ var _player: CharacterBody3D
 var _gravity := 9.8
 var _contact_wait := 0.0
 var _tell := -1.0
+var _pose := 0.0
 var _stagger := 0.0
 var _knock := Vector3.ZERO
 
@@ -87,6 +89,7 @@ func _physics_process(delta: float) -> void:
 		velocity.y -= _gravity * delta
 	move_and_slide()
 	_update_touch(delta)
+	_apply_pose(delta)
 
 
 func _update_touch(delta: float) -> void:
@@ -108,10 +111,26 @@ func _update_touch(delta: float) -> void:
 	if _tell > 0.0 or _stagger > 0.0:
 		return
 	_tell = -1.0
+	_pose = 0.0
 	var stats := _player.get_node_or_null("CombatHealth")
 	if stats != null and stats.has_method("hurt"):
 		stats.call("hurt", PACK.contact_damage())
 		_contact_wait = CONTACT_COOLDOWN
+
+
+func _apply_pose(delta: float) -> void:
+	var visual := _visual()
+	if visual == null:
+		return
+	if _tell >= 0.0:
+		var along := 1.0 - clampf(_tell / CONTACT_TELL, 0.0, 1.0)
+		_pose = TELL_LEAN * along
+	else:
+		var blend := 1.0 - exp(-8.0 * delta)
+		_pose = lerpf(_pose, 0.0, blend)
+		if absf(_pose) < 0.01:
+			_pose = 0.0
+	visual.rotation.x = _pose
 
 
 func _face(direction: Vector3) -> void:
