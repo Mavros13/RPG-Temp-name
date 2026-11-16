@@ -4,6 +4,7 @@ extends Node
 
 const OUT_TIME := 0.18
 const IN_TIME := 0.22
+const CROSS := preload("res://game/audio/door_cross.wav")
 
 static var running := false
 static var covered_scene := false
@@ -37,6 +38,22 @@ func _ready() -> void:
 	_veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(_veil)
 	_veil.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_play_cross()
+
+
+func _play_cross() -> void:
+	var cross := AudioStreamPlayer.new()
+	cross.name = "DoorCross"
+	cross.stream = CROSS
+	cross.volume_db = -10.0
+	cross.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(cross)
+	var watch := Node.new()
+	watch.name = "CrossPause"
+	watch.process_mode = Node.PROCESS_MODE_ALWAYS
+	watch.set_script(preload("res://game/world/cross_pause.gd"))
+	add_child(watch)
+	cross.play()
 
 
 func _process(delta: float) -> void:
