@@ -18,6 +18,8 @@ const HOSTILE_SCENE := preload("res://assets/characters/hostile_npc/hostile_npc.
 const PASSAGE := preload("res://game/world/passage.gd")
 const HUD_SCENE := preload("res://game/ui/hud_3d/hud_3d.tscn")
 const DARK_BRAZIERS := preload("res://game/world/chamber_2/dark_braziers.gd")
+const QUEST := preload("res://game/world/quest_state.gd")
+const ALCOVE_SCENE := "res://game/world/alcove/alcove.tscn"
 
 func _ready() -> void:
 	DisplayServer.window_set_title("APEX DREAMFORGE")
@@ -52,13 +54,11 @@ func _build_bounds() -> void:
 	var body := $Bounds as StaticBody3D
 	_add_box(body, Vector3(ROOM_X, 0.4, ROOM_Z), Vector3(ROOM_X * 0.5, -0.2, ROOM_Z * 0.5))
 	var reach := WALL_THICKNESS * 0.5
-	var along_x := ROOM_X + 0.8
 	var along_z := ROOM_Z + 0.8
-	var mid_x := ROOM_X * 0.5
 	var mid_z := ROOM_Z * 0.5
 	var height := WALL_HEIGHT * 0.5
 	_add_south_opening(body, height, PLINTH - reach, ROOM_X)
-	_add_box(body, Vector3(along_x, WALL_HEIGHT, WALL_THICKNESS), Vector3(mid_x, height, ROOM_Z - PLINTH + reach))
+	_add_north_opening(body, height, ROOM_Z - PLINTH + reach)
 	_add_box(body, Vector3(WALL_THICKNESS, WALL_HEIGHT, along_z), Vector3(PLINTH - reach, height, mid_z))
 	_add_box(body, Vector3(WALL_THICKNESS, WALL_HEIGHT, along_z), Vector3(ROOM_X - PLINTH + reach, height, mid_z))
 
@@ -76,8 +76,20 @@ func _add_x_span(body: StaticBody3D, x0: float, x1: float, height: float, z: flo
 	_add_box(body, Vector3(x1 - x0, WALL_HEIGHT, WALL_THICKNESS), Vector3((x0 + x1) * 0.5, height, z))
 
 
+func _add_north_opening(body: StaticBody3D, height: float, north_z: float) -> void:
+	var overhang := 0.4
+	var left := DOOR_CENTER_X - DOOR_WIDTH * 0.5
+	var right := DOOR_CENTER_X + DOOR_WIDTH * 0.5
+	_add_x_span(body, -overhang, left, height, north_z)
+	_add_x_span(body, right, ROOM_X + overhang, height, north_z)
+	if not QUEST.delivered:
+		_add_box(body, Vector3(DOOR_WIDTH, WALL_HEIGHT, WALL_THICKNESS), Vector3(DOOR_CENTER_X, height, north_z))
+
+
 func _place_passage() -> void:
 	PASSAGE.place(self, Vector3(DOOR_CENTER_X, 1.1, 0.35), "res://game/world/room_3d/room_3d.tscn", "ReturnDoor", "Back to the room")
+	var sign := "Sealed" if not QUEST.delivered else "Alcove"
+	PASSAGE.place(self, Vector3(DOOR_CENTER_X, 1.1, ROOM_Z - 1.2), ALCOVE_SCENE, "AlcoveDoor", sign, true)
 
 
 func _add_box(body: StaticBody3D, size: Vector3, box_position: Vector3) -> void:
@@ -104,18 +116,23 @@ func _build_walls() -> void:
 		var center_x := (float(x) + 0.5) * TILE
 		if absf(center_x - DOOR_CENTER_X) > 0.01:
 			_add_wall(parent, Vector3(center_x, 0.0, 0.0), 0.0)
-		_add_wall(parent, Vector3(center_x, 0.0, ROOM_Z), PI)
+		if absf(center_x - DOOR_CENTER_X) > 0.01:
+			_add_wall(parent, Vector3(center_x, 0.0, ROOM_Z), PI)
+		elif not QUEST.delivered:
+			var seal := _add_wall(parent, Vector3(center_x, 0.0, ROOM_Z), PI)
+			seal.name = "AlcoveSeal"
 	for z in TILES_Z:
 		var center_z := (float(z) + 0.5) * TILE
 		_add_wall(parent, Vector3(0.0, 0.0, center_z), PI * 0.5)
 		_add_wall(parent, Vector3(ROOM_X, 0.0, center_z), -PI * 0.5)
 
 
-func _add_wall(parent: Node, wall_position: Vector3, yaw: float) -> void:
-	var wall := WALL_SCENE.instantiate()
+func _add_wall(parent: Node, wall_position: Vector3, yaw: float) -> Node3D:
+	var wall := WALL_SCENE.instantiate() as Node3D
 	wall.position = wall_position
 	wall.rotation.y = yaw
 	parent.add_child(wall)
+	return wall
 
 
 func _place_braziers() -> void:

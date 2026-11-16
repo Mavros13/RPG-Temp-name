@@ -1,0 +1,28 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://game/world/alcove/alcove.gd" id="1_alcove"]
+[ext_resource type="Script" path="res://game/world/chamber_2/player.gd" id="2_player"]
+
+[node name="Alcove" type="Node3D"]
+script = ExtResource("1_alcove")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+
+[node name="FillLight" type="DirectionalLight3D" parent="."]
+
+[node name="Bounds" type="StaticBody3D" parent="."]
+
+[node name="Visuals" type="Node3D" parent="."]
+
+[node name="Floor" type="Node3D" parent="Visuals"]
+
+[node name="Walls" type="Node3D" parent="Visuals"]
+
+[node name="Player" type="CharacterBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.08, 3)
+script = ExtResource("2_player")
+
+[node name="Model" type="Node3D" parent="Player"]
+
+[node name="Camera3D" type="Camera3D" parent="Player"]
+current = true
