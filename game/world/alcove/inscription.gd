@@ -2,6 +2,8 @@ extends Node
 
 const LINE := "The forge kept your name."
 
+static var read := false
+
 var _open := false
 var _layer: CanvasLayer
 var _line: Label
@@ -39,6 +41,7 @@ func _is_read_key(event: InputEvent) -> bool:
 
 
 func _show() -> void:
+	read = true
 	_open = true
 	_layer.visible = true
 
