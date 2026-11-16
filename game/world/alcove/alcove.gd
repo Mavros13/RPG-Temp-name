@@ -118,11 +118,14 @@ func _show_controls() -> void:
 	add_child(layer)
 	var line := HUD._make_controls_line()
 	layer.add_child(line)
-	_refresh_controls_line.call_deferred(line)
+	var save_line := HUD._make_save_line()
+	layer.add_child(save_line)
+	_refresh_controls_line.call_deferred(line, save_line)
 
 
-func _refresh_controls_line(line: Label) -> void:
+func _refresh_controls_line(line: Label, save_line: Label) -> void:
 	line.text = HUD.controls_text()
+	save_line.text = HUD.save_line_text()
 
 
 func _place_inscription() -> void:
