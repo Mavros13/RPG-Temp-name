@@ -33,6 +33,8 @@ const WALK_STEP := 0.46
 const SPRINT_STEP := 0.28
 const STEP_BOB := 0.02
 const STEP_BOB_RETURN := 14.0
+const HIT_SHAKE_TIME := 0.18
+const HIT_SHAKE := Vector3(0.05, 0.028, 0.0)
 const SETTLE_TIME := 0.16
 const SETTLE_DIP := 0.07
 
@@ -58,6 +60,9 @@ var _steps: AudioStreamPlayer3D
 var _land: AudioStreamPlayer3D
 var _step_time := 0.0
 var _step_bob := 0.0
+var _hit_shake := Vector3.ZERO
+var _hit_shake_left := 0.0
+var _hit_shake_bound := false
 var _pending_jump := false
 var _air_from_jump := false
 var _settle := 0.0
@@ -88,6 +93,7 @@ func _ready() -> void:
 	_setup_footsteps()
 	_arm_step_pause()
 	_setup_land()
+	_bind_hit_shake()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
@@ -281,9 +287,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
+	_bind_hit_shake()
 	_ease_look(delta)
 	_ease_sprint_camera(delta)
 	_update_step_bob(delta)
+	_update_hit_shake(delta)
 	_place_camera(delta)
 
 
@@ -335,6 +343,33 @@ func _step_bob_target() -> float:
 	return sin(TAU * _step_time / interval) * STEP_BOB
 
 
+func _bind_hit_shake() -> void:
+	if _hit_shake_bound:
+		return
+	var stats := get_node_or_null("CombatHealth")
+	if stats == null or not stats.has_signal("damaged"):
+		return
+	if not stats.damaged.is_connected(_on_hit_shake):
+		stats.damaged.connect(_on_hit_shake)
+	_hit_shake_bound = true
+
+
+func _on_hit_shake(_amount: int, _remaining: int) -> void:
+	_hit_shake_left = HIT_SHAKE_TIME
+	_hit_shake = HIT_SHAKE
+
+
+func _update_hit_shake(delta: float) -> void:
+	if _hit_shake_left <= 0.0:
+		_hit_shake = Vector3.ZERO
+		return
+	_hit_shake_left = maxf(_hit_shake_left - delta, 0.0)
+	var along := _hit_shake_left / HIT_SHAKE_TIME
+	_hit_shake = HIT_SHAKE * along * along
+	if _hit_shake_left <= 0.0:
+		_hit_shake = Vector3.ZERO
+
+
 func rest_step_bob(delta: float) -> void:
 	var previous := _step_bob
 	var blend := 1.0 - exp(-STEP_BOB_RETURN * delta)
@@ -381,6 +416,7 @@ func _place_camera(delta: float) -> void:
 	if camera.global_position.distance_squared_to(look_target) > 0.01:
 		camera.look_at(look_target, Vector3.UP)
 	camera.global_position.y += _step_bob
+	camera.global_position += _hit_shake
 
 
 func _camera_clearance(pivot: Vector3, desired: Vector3) -> float:
