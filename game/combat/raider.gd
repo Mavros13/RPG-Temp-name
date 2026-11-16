@@ -5,6 +5,9 @@ const CONTACT_RANGE := 1.05
 const CONTACT_COOLDOWN := 0.8
 const CONTACT_TELL := 0.33
 const TELL_LEAN := -0.42
+const FALL_TIME := 0.55
+const FALL_TIP := 1.25
+const FALL_DROP := 0.42
 const MAX_HEALTH := 14
 const PLAYER_MAX_HEALTH := 8
 
@@ -23,6 +26,7 @@ var _tell := -1.0
 var _pose := 0.0
 var _stagger := 0.0
 var _knock := Vector3.ZERO
+var _fall := -1.0
 
 
 func _ready() -> void:
@@ -33,7 +37,7 @@ func _ready() -> void:
 	_player = get_parent().get_node("Player") as CharacterBody3D
 	_player.add_to_group("player")
 	_health = _attach(self, "CombatHealth", MAX_HEALTH)
-	_health.connect("depleted", Callable(self, "queue_free"))
+	_health.connect("depleted", Callable(self, "_begin_fall"))
 	_attach(_player, "CombatHealth", PLAYER_MAX_HEALTH)
 	_attach(_player, "PlayerAttack", -1)
 	_attach_flash(_player)
@@ -63,8 +67,21 @@ func take_hit(amount: int) -> void:
 	_health.call("hurt", amount)
 
 
+func _begin_fall() -> void:
+	if _fall >= 0.0:
+		return
+	_fall = FALL_TIME
+	_tell = -1.0
+	_stagger = 0.0
+	_knock = Vector3.ZERO
+	velocity = Vector3.ZERO
+
+
 func _physics_process(delta: float) -> void:
-	if _player == null or not is_instance_valid(_player) or current_health() <= 0:
+	if _player == null or not is_instance_valid(_player):
+		return
+	if _fall >= 0.0 or current_health() <= 0:
+		_update_fall(delta)
 		return
 	var to_player := _player.global_position - global_position
 	to_player.y = 0.0
@@ -90,6 +107,26 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	_update_touch(delta)
 	_apply_pose(delta)
+
+
+func _update_fall(delta: float) -> void:
+	if _fall < 0.0:
+		_fall = FALL_TIME
+	velocity.x = 0.0
+	velocity.z = 0.0
+	if is_on_floor():
+		velocity.y = 0.0
+	else:
+		velocity.y -= _gravity * delta
+	move_and_slide()
+	var visual := _visual()
+	if visual != null:
+		var along := 1.0 - clampf(_fall / FALL_TIME, 0.0, 1.0)
+		visual.rotation.x = FALL_TIP * along
+		visual.position.y = -FALL_DROP * along
+	_fall = maxf(_fall - delta, 0.0)
+	if _fall <= 0.0:
+		queue_free()
 
 
 func _update_touch(delta: float) -> void:
