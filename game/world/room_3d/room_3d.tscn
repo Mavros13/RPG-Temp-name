@@ -8,7 +8,7 @@ script = ExtResource("1_room")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 
-[node name="FillLight" type="DirectionalLight3D" parent="."]
+[node name="KeyLight" type="DirectionalLight3D" parent="."]
 
 [node name="Bounds" type="StaticBody3D" parent="."]
 
