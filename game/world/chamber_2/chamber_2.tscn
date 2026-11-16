@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" uid="uid://do377vnetni8u" path="res://game/world/chamber_2/chamber_2.gd" id="1_chamber"]
 [ext_resource type="Script" uid="uid://djsjt8ax2aneh" path="res://game/world/chamber_2/player.gd" id="2_player"]
+[ext_resource type="Script" uid="uid://braidercombat" path="res://game/combat/raider.gd" id="3_raider"]
 
 [node name="Chamber2" type="Node3D"]
 script = ExtResource("1_chamber")
@@ -28,3 +29,7 @@ script = ExtResource("2_player")
 
 [node name="Camera3D" type="Camera3D" parent="Player"]
 current = true
+
+[node name="Hostile" type="CharacterBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.4, 0, 6)
+script = ExtResource("3_raider")
