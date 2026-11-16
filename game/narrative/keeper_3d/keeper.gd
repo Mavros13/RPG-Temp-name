@@ -66,6 +66,14 @@ func _bind_talk() -> void:
 		InputMap.action_add_event(&"talk", event)
 
 
+func _set_mouse_look(enabled: bool) -> void:
+	var player := _player()
+	if player != null and player.has_method("set_mouse_look"):
+		player.call("set_mouse_look", enabled)
+		return
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED if enabled else Input.MOUSE_MODE_VISIBLE
+
+
 func _player() -> CharacterBody3D:
 	var room := get_parent()
 	if room == null:
@@ -88,6 +96,7 @@ func _open_dialogue() -> void:
 	_open = true
 	_dialogue.visible = true
 	_continue.grab_focus()
+	_set_mouse_look(false)
 	var player := _player()
 	if player:
 		player.velocity = Vector3.ZERO
@@ -104,6 +113,7 @@ func _close_dialogue() -> void:
 	if _held_player:
 		_held_player.set_physics_process(true)
 		_held_player = null
+	_set_mouse_look(true)
 
 
 func _build_collision() -> void:
