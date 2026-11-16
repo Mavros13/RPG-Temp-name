@@ -1,14 +1,15 @@
 extends CanvasLayer
 
 ## Attack and defense stay on this sheet. Health follows the player's combat health.
+const QUEST := preload("res://game/world/quest_state.gd")
 const ATTACK := 4
 const DEFENSE := 2
-const NEXT_OBJECTIVE := "Read the mark on every brazier that stayed dark and bring those names back."
 
 @onready var health_value: Label = %HealthValue
 @onready var attack_value: Label = %AttackValue
 @onready var defense_value: Label = %DefenseValue
 @onready var unmarked_row: HBoxContainer = %UnmarkedRow
+@onready var unmarked_name: Label = %UnmarkedName
 @onready var unmarked_value: Label = %UnmarkedValue
 @onready var objective: Label = %Objective
 
@@ -50,13 +51,39 @@ func _show_health(amount: int) -> void:
 
 func set_unmarked(count: int) -> void:
 	if count > 0:
-		unmarked_row.visible = true
-		objective.visible = false
-		unmarked_value.text = str(count)
+		_show_count("Unmarked", count)
 		return
+	if QUEST.all_names_read():
+		_show_objective(QUEST.COAL_OBJECTIVE)
+	elif not QUEST.names_read.is_empty():
+		_show_count("Unread", QUEST.unread_count())
+	else:
+		_show_objective(QUEST.READ_OBJECTIVE)
+
+
+func show_unread(count: int) -> void:
+	if count > 0:
+		_show_count("Unread", count)
+		return
+	_show_objective(QUEST.COAL_OBJECTIVE)
+
+
+func clear_quest() -> void:
+	unmarked_row.visible = false
+	objective.visible = false
+
+
+func _show_count(title: String, count: int) -> void:
+	unmarked_name.text = title
+	unmarked_value.text = str(count)
+	unmarked_row.visible = true
+	objective.visible = false
+
+
+func _show_objective(text: String) -> void:
 	unmarked_row.visible = false
 	objective.visible = true
-	objective.text = NEXT_OBJECTIVE
+	objective.text = text
 	var panel := $Panel as Control
 	panel.offset_right = 640.0
 	panel.offset_bottom = 220.0
