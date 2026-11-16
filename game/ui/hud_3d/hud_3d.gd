@@ -3,11 +3,14 @@ extends CanvasLayer
 ## Attack and defense stay on this sheet. Health follows the player's combat health.
 const ATTACK := 4
 const DEFENSE := 2
+const NEXT_OBJECTIVE := "Read the mark on every brazier that stayed dark and bring those names back."
 
 @onready var health_value: Label = %HealthValue
 @onready var attack_value: Label = %AttackValue
 @onready var defense_value: Label = %DefenseValue
+@onready var unmarked_row: HBoxContainer = %UnmarkedRow
 @onready var unmarked_value: Label = %UnmarkedValue
+@onready var objective: Label = %Objective
 
 var _health: Node
 
@@ -46,4 +49,14 @@ func _show_health(amount: int) -> void:
 
 
 func set_unmarked(count: int) -> void:
-	unmarked_value.text = str(count)
+	if count > 0:
+		unmarked_row.visible = true
+		objective.visible = false
+		unmarked_value.text = str(count)
+		return
+	unmarked_row.visible = false
+	objective.visible = true
+	objective.text = NEXT_OBJECTIVE
+	var panel := $Panel as Control
+	panel.offset_right = 640.0
+	panel.offset_bottom = 220.0
