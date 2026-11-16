@@ -2,6 +2,7 @@ extends Node
 
 const QUEST := preload("res://game/world/quest_state.gd")
 const BRAZIER_SCENE := preload("res://assets/world/first_room/brazier.glb")
+const TONE := preload("res://game/audio/dark_name_tone.wav")
 const MARK_RANGE := 1.7
 
 var _braziers: Array[Node3D] = []
@@ -61,6 +62,7 @@ func _try_read() -> void:
 		return
 	best.set_meta("read", true)
 	_show_name(best, mark_name)
+	_play_tone(best)
 	_refresh_hud()
 
 
@@ -89,6 +91,16 @@ func _spot(index: int) -> Vector3:
 	if index == 0:
 		return Vector3(3.4, 0.0, 5.2)
 	return Vector3(6.6, 0.0, 5.2)
+
+
+func _play_tone(brazier: Node3D) -> void:
+	var tone := AudioStreamPlayer3D.new()
+	tone.name = "DarkNameTone"
+	tone.stream = TONE
+	tone.volume_db = -18.0
+	tone.unit_size = 3.0
+	brazier.add_child(tone)
+	tone.play()
 
 
 func _show_name(brazier: Node3D, mark_name: String) -> void:
