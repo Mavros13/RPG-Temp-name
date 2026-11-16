@@ -49,6 +49,8 @@ func _bind_action(action: StringName, keys: Array) -> void:
 
 func _physics_process(delta: float) -> void:
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	if has_meta("defeated"):
+		input_dir = Vector2.ZERO
 	var direction := _camera_relative(input_dir)
 	if direction.length_squared() > 0.0001:
 		direction = direction.normalized()

@@ -97,7 +97,7 @@ func _place_braziers() -> void:
 func _place_hostile() -> void:
 	var visual := HOSTILE_SCENE.instantiate()
 	visual.rotation.y = PI
-	var body := $Hostile as StaticBody3D
+	var body := $Hostile as Node3D
 	body.add_child(visual)
 	var shape := CollisionShape3D.new()
 	var capsule := CapsuleShape3D.new()
