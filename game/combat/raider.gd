@@ -8,6 +8,7 @@ const PLAYER_MAX_HEALTH := 8
 
 const HEALTH := preload("res://game/combat/health.gd")
 const ATTACK := preload("res://game/combat/player_attack.gd")
+const FLASH := preload("res://game/combat/hit_flash.gd")
 const HUD := preload("res://game/combat/combat_hud.gd")
 const PACK := preload("res://game/world/inventory_state.gd")
 
@@ -30,6 +31,7 @@ func _ready() -> void:
 	_health.connect("depleted", Callable(self, "queue_free"))
 	_attach(_player, "CombatHealth", PLAYER_MAX_HEALTH)
 	_attach(_player, "PlayerAttack", -1)
+	_attach_flash(_player)
 	var room := get_parent()
 	if room.get_node_or_null("CombatHud") == null:
 		var hud := HUD.new()
@@ -106,6 +108,14 @@ func _visual() -> Node3D:
 		if child is Node3D and child.name != "CombatHealth":
 			return child
 	return null
+
+
+func _attach_flash(player: Node) -> void:
+	if player.get_node_or_null("HitFlash") != null:
+		return
+	var flash := FLASH.new()
+	flash.name = "HitFlash"
+	player.add_child(flash)
 
 
 func _attach(host: Node, node_name: String, max_health: int) -> Node:
