@@ -13,6 +13,7 @@ const CAMERA_BACK := 3.15
 const CAMERA_HEIGHT := 2.55
 const CAMERA_LOOK_HEIGHT := 1.2
 const CAMERA_ARM_SHARPNESS := 8.0
+const LOOK_BLEND := 0.42
 const CAMERA_PROBE_RADIUS := 0.18
 const MOUSE_SENS := 0.0028
 const PITCH_MIN := -0.2
@@ -35,6 +36,8 @@ const SETTLE_DIP := 0.07
 @onready var camera: Camera3D = $Camera3D
 
 var _facing_yaw := 0.0
+var _aim_yaw := 0.0
+var _aim_pitch := 0.0
 var _camera_yaw := 0.0
 var _camera_pitch := 0.0
 var _orbit_distance := 1.0
@@ -66,9 +69,11 @@ func _ready() -> void:
 	camera.fov = 58.0
 	_facing_yaw = model.rotation.y
 	_camera_yaw = _facing_yaw
+	_aim_yaw = _facing_yaw
 	var raise := CAMERA_HEIGHT - CAMERA_LOOK_HEIGHT
 	_orbit_distance = Vector2(CAMERA_BACK, raise).length()
 	_camera_pitch = atan2(raise, CAMERA_BACK)
+	_aim_pitch = _camera_pitch
 	_camera_arm = _orbit_distance
 	_place_camera(0.0)
 	_setup_footsteps()
@@ -244,18 +249,24 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not _look or not (event is InputEventMouseMotion):
 		return
 	var motion := event as InputEventMouseMotion
-	_camera_yaw -= motion.relative.x * MOUSE_SENS
-	_camera_pitch = clampf(_camera_pitch + motion.relative.y * MOUSE_SENS, PITCH_MIN, PITCH_MAX)
+	_aim_yaw -= motion.relative.x * MOUSE_SENS
+	_aim_pitch = clampf(_aim_pitch + motion.relative.y * MOUSE_SENS, PITCH_MIN, PITCH_MAX)
 
 
 func _process(delta: float) -> void:
+	_ease_look(delta)
 	_place_camera(delta)
+
+
+func _ease_look(_delta: float) -> void:
+	_camera_yaw = lerp_angle(_camera_yaw, _aim_yaw, LOOK_BLEND)
+	_camera_pitch = lerpf(_camera_pitch, _aim_pitch, LOOK_BLEND)
 
 
 func _wish_direction(input_dir: Vector2) -> Vector3:
 	if input_dir.length_squared() <= 0.0001:
 		return Vector3.ZERO
-	var forward := Vector3(sin(_camera_yaw), 0.0, cos(_camera_yaw))
+	var forward := Vector3(sin(_aim_yaw), 0.0, cos(_aim_yaw))
 	var right := forward.cross(Vector3.UP)
 	if right.length_squared() < 0.0001:
 		right = Vector3(1.0, 0.0, 0.0)

@@ -9,6 +9,7 @@ const ROOM_MAX_X := 9.55
 const ROOM_MIN_Z := 0.45
 const ROOM_MAX_Z := 7.55
 const MOUSE_SENS := 0.0028
+const LOOK_BLEND := 0.42
 const WALK_BOB_RATE := 9.5
 const BOB_HEIGHT := 0.06
 const LEAN_ANGLE := 0.16
@@ -20,6 +21,7 @@ const WALK_STEP := 0.46
 @onready var model: Node3D = $Model
 @onready var camera: Camera3D = $Camera3D
 
+var _aim_yaw := 0.0
 var _yaw := 0.0
 var _look := true
 var _facing_yaw := 0.0
@@ -158,17 +160,18 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not _look or not (event is InputEventMouseMotion):
 		return
 	var motion := event as InputEventMouseMotion
-	_yaw -= motion.relative.x * MOUSE_SENS
+	_aim_yaw -= motion.relative.x * MOUSE_SENS
 
 
 func _process(_delta: float) -> void:
+	_yaw = lerp_angle(_yaw, _aim_yaw, LOOK_BLEND)
 	_place_camera()
 
 
 func _camera_relative(input_dir: Vector2) -> Vector3:
 	# Heading comes from the orbit, not the clamped camera, so a wall
 	# that pulls the camera inside the player does not reverse the keys.
-	var offset := _orbit_offset()
+	var offset := CAMERA_OFFSET.rotated(Vector3.UP, _aim_yaw)
 	var forward := Vector3(-offset.x, 0.0, -offset.z)
 	if forward.length_squared() < 0.0001:
 		forward = Vector3(0.0, 0.0, 1.0)
