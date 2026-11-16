@@ -16,6 +16,7 @@ const HOSTILE_SCENE := preload("res://assets/characters/hostile_npc/hostile_npc.
 const SURFACE_SHADER := preload("res://game/world/room_3d/materials/room_surface.gdshader")
 const FIRE_SHADER := preload("res://game/world/room_3d/materials/room_fire.gdshader")
 const PASSAGE := preload("res://game/world/passage.gd")
+const BRAZIER_MARKS := preload("res://game/world/room_3d/brazier_marks.gd")
 
 var _materials: Dictionary = {}
 
@@ -28,6 +29,7 @@ func _ready() -> void:
 	_place_braziers()
 	_place_hostile()
 	_place_passage()
+	_place_brazier_marks()
 
 
 func _setup_lighting() -> void:
@@ -105,6 +107,19 @@ func _add_x_span(body: StaticBody3D, x0: float, x1: float, height: float, z: flo
 
 func _place_passage() -> void:
 	PASSAGE.place(self, Vector3(DOOR_CENTER_X, 1.1, 0.35), "res://game/world/chamber_2/chamber_2.tscn", "ChamberDoor", "Second chamber")
+
+
+func _place_brazier_marks() -> void:
+	var marks := BRAZIER_MARKS.new()
+	marks.name = "BrazierMarks"
+	add_child(marks)
+	marks.bind($Visuals/Braziers)
+	var hud := get_node_or_null("Hud3D")
+	if hud != null and hud.has_method("set_unmarked"):
+		hud.call("set_unmarked", marks.unmarked)
+		marks.marks_changed.connect(func(remaining: int) -> void:
+			hud.call("set_unmarked", remaining)
+		)
 
 
 func _add_box(body: StaticBody3D, size: Vector3, position: Vector3) -> void:
