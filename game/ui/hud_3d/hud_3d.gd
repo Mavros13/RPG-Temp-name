@@ -7,6 +7,7 @@ const DEFENSE := 2
 @onready var health_value: Label = %HealthValue
 @onready var attack_value: Label = %AttackValue
 @onready var defense_value: Label = %DefenseValue
+@onready var unmarked_value: Label = %UnmarkedValue
 
 var _health: Node
 
@@ -42,3 +43,7 @@ func _on_damaged(_amount: int, remaining: int) -> void:
 
 func _show_health(amount: int) -> void:
 	health_value.text = str(amount)
+
+
+func set_unmarked(count: int) -> void:
+	unmarked_value.text = str(count)
