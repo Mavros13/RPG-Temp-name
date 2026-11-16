@@ -5,6 +5,7 @@ const QUEST := preload("res://game/world/quest_state.gd")
 const PACK := preload("res://game/world/inventory_state.gd")
 const SAVE := preload("res://game/world/room_save.gd")
 const LIT_ROOM := "res://game/world/room_3d/room_3d.tscn"
+const MAIN_MENU := "res://game/ui/main_menu/main_menu.tscn"
 const LIT_START := Vector3(4.0, 0.08, 3.2)
 const FALL_TIME := 1.6
 
@@ -19,7 +20,8 @@ static var announce_fall := false
 @onready var objective: Label = %Objective
 @onready var inventory: PanelContainer = %Inventory
 @onready var inventory_items: VBoxContainer = %InventoryItems
-@onready var paused_label: Label = %Paused
+@onready var pause_bar: HBoxContainer = %PauseBar
+@onready var menu_button: Button = %Menu
 @onready var fall_label: Label = %Fallen
 
 var _health: Node
@@ -39,7 +41,8 @@ func _ready() -> void:
 	_bind_pause()
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	inventory.visible = false
-	paused_label.visible = false
+	pause_bar.visible = false
+	menu_button.pressed.connect(_open_menu)
 	fall_label.visible = false
 	if announce_fall:
 		announce_fall = false
@@ -199,7 +202,13 @@ func _toggle_pause() -> void:
 	else:
 		get_tree().paused = false
 		_restore_loops()
-	paused_label.visible = _room_paused
+	pause_bar.visible = _room_paused
+
+
+func _open_menu() -> void:
+	_room_paused = false
+	get_tree().paused = false
+	get_tree().change_scene_to_file(MAIN_MENU)
 
 
 func _quiet_loops() -> void:
