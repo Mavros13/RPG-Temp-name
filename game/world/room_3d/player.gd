@@ -74,6 +74,8 @@ func _bind_action(action: StringName, keys: Array) -> void:
 
 func _physics_process(delta: float) -> void:
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	if has_meta("defeated"):
+		input_dir = Vector2.ZERO
 	var direction := _wish_direction(input_dir)
 	var top_speed := SPRINT_SPEED if Input.is_action_pressed("sprint") else SPEED
 	var target := Vector3.ZERO
