@@ -323,12 +323,13 @@ func _refresh_controls() -> void:
 
 
 static func controls_text() -> String:
-	return "Move %s · Look Mouse · Sprint %s · Jump %s · Attack %s · Interact %s · Pause %s" % [
+	return "Move %s · Look Mouse · Sprint %s · Jump %s · Attack %s · Interact %s · Drink %s · Pause %s" % [
 		_move_names(),
 		_key_names([&"sprint"]),
 		_key_names([&"jump"]),
 		_attack_names(),
 		_key_names([&"mark"]),
+		_key_names([&"drink"]),
 		_key_names([&"pause"]),
 	]
 
