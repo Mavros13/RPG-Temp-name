@@ -2,7 +2,6 @@ extends CharacterBody3D
 
 const SPEED := 2.4
 const CONTACT_RANGE := 1.05
-const CONTACT_DAMAGE := 1
 const CONTACT_COOLDOWN := 0.8
 const MAX_HEALTH := 14
 const PLAYER_MAX_HEALTH := 8
@@ -10,6 +9,7 @@ const PLAYER_MAX_HEALTH := 8
 const HEALTH := preload("res://game/combat/health.gd")
 const ATTACK := preload("res://game/combat/player_attack.gd")
 const HUD := preload("res://game/combat/combat_hud.gd")
+const PACK := preload("res://game/world/inventory_state.gd")
 
 var _health: Node
 var _player: CharacterBody3D
@@ -88,7 +88,7 @@ func _physics_process(delta: float) -> void:
 		return
 	var stats := _player.get_node_or_null("CombatHealth")
 	if stats != null and stats.has_method("hurt"):
-		stats.call("hurt", CONTACT_DAMAGE)
+		stats.call("hurt", PACK.contact_damage())
 		_contact_wait = CONTACT_COOLDOWN
 
 
