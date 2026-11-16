@@ -1,6 +1,7 @@
 extends Node
 
 const CONNECT := preload("res://game/audio/connect.wav")
+const NUMBER := preload("res://game/combat/damage_number.gd")
 
 signal damaged(amount: int, remaining: int)
 signal healed(amount: int, remaining: int)
@@ -31,12 +32,31 @@ func hurt(amount: int) -> void:
 	health = maxi(health - amount, 0)
 	_connect.play()
 	damaged.emit(amount, health)
+	_show_damage(amount)
 	if health > 0:
 		return
 	var body := get_parent()
 	if body != null and body.is_in_group("player"):
 		body.set_meta("defeated", true)
 	depleted.emit()
+
+
+func _show_damage(amount: int) -> void:
+	var body := get_parent() as Node3D
+	if body == null or amount <= 0:
+		return
+	var label := NUMBER.new() as Label3D
+	label.name = "DamageNumber"
+	label.process_mode = Node.PROCESS_MODE_ALWAYS
+	label.text = str(amount)
+	label.font_size = 56
+	label.pixel_size = 0.007
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.modulate = Color(1.0, 0.86, 0.42)
+	label.outline_size = 10
+	label.outline_modulate = Color(0.05, 0.02, 0.01, 0.9)
+	label.position = Vector3(0.0, 1.85, 0.0)
+	body.add_child(label)
 
 
 func heal(amount: int) -> void:
