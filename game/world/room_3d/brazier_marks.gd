@@ -2,6 +2,7 @@ extends Node
 
 const QUEST := preload("res://game/world/quest_state.gd")
 const HEART := preload("res://game/world/room_3d/dreamforge_heart.gd")
+const CHIME := preload("res://game/audio/mark_chime.wav")
 const MARK_RANGE := 1.7
 const FIRE_SHADER := "res://game/world/room_3d/materials/room_fire.gdshader"
 const SURFACE_SHADER := "res://game/world/room_3d/materials/room_surface.gdshader"
@@ -51,6 +52,16 @@ func _try_mark() -> void:
 	_mark(best)
 
 
+func _play_chime(brazier: Node3D) -> void:
+	var chime := AudioStreamPlayer3D.new()
+	chime.name = "MarkChime"
+	chime.stream = CHIME
+	chime.volume_db = -5.0
+	chime.unit_size = 4.0
+	brazier.add_child(chime)
+	chime.play()
+
+
 func _player() -> Node3D:
 	var player := get_tree().get_first_node_in_group("player") as Node3D
 	if player != null:
@@ -83,6 +94,7 @@ func _mark(brazier: Node3D) -> void:
 	_apply_marked(brazier)
 	unmarked = maxi(unmarked - 1, 0)
 	marks_changed.emit(unmarked)
+	_play_chime(brazier)
 
 
 func _apply_marked(brazier: Node3D) -> void:
