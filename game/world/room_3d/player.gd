@@ -31,6 +31,8 @@ const FOOTSTEP := preload("res://game/audio/footstep.wav")
 const LAND := preload("res://game/audio/land.wav")
 const WALK_STEP := 0.46
 const SPRINT_STEP := 0.28
+const STEP_PITCH_LOW := 0.94
+const STEP_PITCH_HIGH := 1.06
 const STEP_BOB := 0.02
 const STEP_BOB_RETURN := 14.0
 const HIT_SHAKE_TIME := 0.18
@@ -59,6 +61,7 @@ var _lean_roll := 0.0
 var _steps: AudioStreamPlayer3D
 var _land: AudioStreamPlayer3D
 var _step_time := 0.0
+var _step_pitch_high := false
 var _step_bob := 0.0
 var _hit_shake := Vector3.ZERO
 var _hit_shake_left := 0.0
@@ -284,6 +287,12 @@ func _update_footsteps(delta: float, sprinting: bool) -> void:
 	if _step_time < interval:
 		return
 	_step_time = 0.0
+	_play_footstep()
+
+
+func _play_footstep() -> void:
+	_steps.pitch_scale = STEP_PITCH_HIGH if _step_pitch_high else STEP_PITCH_LOW
+	_step_pitch_high = not _step_pitch_high
 	_steps.play()
 	footstep_played.emit()
 

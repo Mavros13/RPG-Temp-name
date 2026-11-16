@@ -18,6 +18,8 @@ const POSE_SHARPNESS := 12.0
 const GAIT_EPSILON := 0.22
 const FOOTSTEP := preload("res://game/audio/footstep.wav")
 const WALK_STEP := 0.46
+const STEP_PITCH_LOW := 0.94
+const STEP_PITCH_HIGH := 1.06
 
 @onready var model: Node3D = $Model
 @onready var camera: Camera3D = $Camera3D
@@ -32,6 +34,7 @@ var _lean_pitch := 0.0
 var _lean_roll := 0.0
 var _steps: AudioStreamPlayer3D
 var _step_time := 0.0
+var _step_pitch_high := false
 
 signal footstep_played
 
@@ -165,6 +168,8 @@ func _update_footsteps(delta: float) -> void:
 	if _step_time < WALK_STEP:
 		return
 	_step_time = 0.0
+	_steps.pitch_scale = STEP_PITCH_HIGH if _step_pitch_high else STEP_PITCH_LOW
+	_step_pitch_high = not _step_pitch_high
 	_steps.play()
 	footstep_played.emit()
 
