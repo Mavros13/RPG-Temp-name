@@ -1,0 +1,33 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" uid="uid://is7jmnigl3ue" path="res://game/world/room_3d/room_3d.gd" id="1_room"]
+[ext_resource type="Script" uid="uid://cfu0yke3551lu" path="res://game/world/room_3d/player.gd" id="2_player"]
+
+[node name="Room3D" type="Node3D"]
+script = ExtResource("1_room")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+
+[node name="FillLight" type="DirectionalLight3D" parent="."]
+
+[node name="Bounds" type="StaticBody3D" parent="."]
+
+[node name="Visuals" type="Node3D" parent="."]
+
+[node name="Floor" type="Node3D" parent="Visuals"]
+
+[node name="Walls" type="Node3D" parent="Visuals"]
+
+[node name="Braziers" type="Node3D" parent="Visuals"]
+
+[node name="Player" type="CharacterBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0.08, 3.2)
+script = ExtResource("2_player")
+
+[node name="Model" type="Node3D" parent="Player"]
+
+[node name="Camera3D" type="Camera3D" parent="Player"]
+current = true
+
+[node name="Hostile" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 5.8)
