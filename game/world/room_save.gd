@@ -3,6 +3,7 @@ extends RefCounted
 ## Local room save. F5 writes it and F9 reads it back.
 const QUEST := preload("res://game/world/quest_state.gd")
 const PACK := preload("res://game/world/inventory_state.gd")
+const NOTE := preload("res://game/world/alcove/inscription.gd")
 const PATH := "user://room_save.cfg"
 
 static var apply_on_enter := false
@@ -24,6 +25,7 @@ static func write(health: int) -> bool:
 	file.set_value("room", "ildra_read", QUEST.names_read.has("Ildra"))
 	file.set_value("room", "soren_read", QUEST.names_read.has("Soren"))
 	file.set_value("room", "heart_answered", QUEST.delivered)
+	file.set_value("room", "alcove_line_read", NOTE.read)
 	return file.save(PATH) == OK
 
 
@@ -51,6 +53,7 @@ static func read() -> Dictionary:
 		"ildra_read": bool(file.get_value("room", "ildra_read", false)),
 		"soren_read": bool(file.get_value("room", "soren_read", false)),
 		"heart_answered": bool(file.get_value("room", "heart_answered", false)),
+		"alcove_line_read": bool(file.get_value("room", "alcove_line_read", false)),
 	}
 
 

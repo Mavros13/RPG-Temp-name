@@ -4,6 +4,7 @@ extends CanvasLayer
 const QUEST := preload("res://game/world/quest_state.gd")
 const PACK := preload("res://game/world/inventory_state.gd")
 const SAVE := preload("res://game/world/room_save.gd")
+const NOTE := preload("res://game/world/alcove/inscription.gd")
 const LIT_ROOM := "res://game/world/room_3d/room_3d.tscn"
 const MAIN_MENU := "res://game/ui/main_menu/main_menu.tscn"
 const LIT_START := Vector3(4.0, 0.08, 3.2)
@@ -260,6 +261,7 @@ func _load_room() -> void:
 		bool(data["carrying_coal"]),
 		bool(data["heart_answered"])
 	)
+	NOTE.read = bool(data["alcove_line_read"])
 	var stats := _player_stats()
 	var amount := int(data["health"])
 	if stats != null and stats.has_method("restore"):
