@@ -1,7 +1,7 @@
 extends Node
 
+const PACK := preload("res://game/world/inventory_state.gd")
 const RANGE := 1.7
-const DAMAGE := 1
 const COOLDOWN := 0.45
 
 var _cooldown := 0.0
@@ -30,7 +30,7 @@ func _physics_process(delta: float) -> void:
 		return
 	var raider := _nearest_raider(player.global_position)
 	if raider != null and raider.has_method("take_hit"):
-		raider.call("take_hit", DAMAGE)
+		raider.call("take_hit", PACK.attack())
 
 
 func _nearest_raider(origin: Vector3) -> Node:
