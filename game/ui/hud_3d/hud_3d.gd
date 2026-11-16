@@ -262,6 +262,8 @@ func _load_room() -> void:
 		bool(data["heart_answered"])
 	)
 	NOTE.read = bool(data["alcove_line_read"])
+	SAVE.restore_raiders(bool(data["lit_raider_down"]), bool(data["chamber_raider_down"]))
+	_apply_saved_raider()
 	var stats := _player_stats()
 	var amount := int(data["health"])
 	if stats != null and stats.has_method("restore"):
@@ -270,6 +272,19 @@ func _load_room() -> void:
 	_show_health(amount)
 	_sync_inventory(true)
 	_show_saved_quest()
+
+
+func _apply_saved_raider() -> void:
+	var room := get_parent()
+	if room == null or not SAVE.is_down(str(room.scene_file_path)):
+		return
+	var body := room.get_node_or_null("Hostile")
+	if body == null or body.is_queued_for_deletion():
+		return
+	if float(body.get("_fall")) >= 0.0:
+		return
+	body.process_mode = Node.PROCESS_MODE_DISABLED
+	body.queue_free()
 
 
 func _current_health() -> int:

@@ -5,8 +5,12 @@ const QUEST := preload("res://game/world/quest_state.gd")
 const PACK := preload("res://game/world/inventory_state.gd")
 const NOTE := preload("res://game/world/alcove/inscription.gd")
 const PATH := "user://room_save.cfg"
+const LIT_ROOM := "res://game/world/room_3d/room_3d.tscn"
+const CHAMBER := "res://game/world/chamber_2/chamber_2.tscn"
 
 static var apply_on_enter := false
+static var lit_raider_down := false
+static var chamber_raider_down := false
 
 
 static func exists() -> bool:
@@ -26,6 +30,8 @@ static func write(health: int) -> bool:
 	file.set_value("room", "soren_read", QUEST.names_read.has("Soren"))
 	file.set_value("room", "heart_answered", QUEST.delivered)
 	file.set_value("room", "alcove_line_read", NOTE.read)
+	file.set_value("room", "lit_raider_down", lit_raider_down)
+	file.set_value("room", "chamber_raider_down", chamber_raider_down)
 	return file.save(PATH) == OK
 
 
@@ -54,7 +60,34 @@ static func read() -> Dictionary:
 		"soren_read": bool(file.get_value("room", "soren_read", false)),
 		"heart_answered": bool(file.get_value("room", "heart_answered", false)),
 		"alcove_line_read": bool(file.get_value("room", "alcove_line_read", false)),
+		"lit_raider_down": bool(file.get_value("room", "lit_raider_down", false)),
+		"chamber_raider_down": bool(file.get_value("room", "chamber_raider_down", false)),
 	}
+
+
+static func remember_defeat(scene_path: String) -> void:
+	if scene_path == LIT_ROOM:
+		lit_raider_down = true
+	elif scene_path == CHAMBER:
+		chamber_raider_down = true
+
+
+static func is_down(scene_path: String) -> bool:
+	if scene_path == LIT_ROOM:
+		return lit_raider_down
+	if scene_path == CHAMBER:
+		return chamber_raider_down
+	return false
+
+
+static func reset_raiders() -> void:
+	lit_raider_down = false
+	chamber_raider_down = false
+
+
+static func restore_raiders(lit_down: bool, chamber_down: bool) -> void:
+	lit_raider_down = lit_down
+	chamber_raider_down = chamber_down
 
 
 static func _potion_count(file: ConfigFile) -> int:

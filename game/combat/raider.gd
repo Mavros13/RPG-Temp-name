@@ -17,6 +17,7 @@ const FLASH := preload("res://game/combat/hit_flash.gd")
 const RAIDER_FLASH := preload("res://game/combat/raider_flash.gd")
 const HUD := preload("res://game/combat/combat_hud.gd")
 const PACK := preload("res://game/world/inventory_state.gd")
+const SAVE := preload("res://game/world/room_save.gd")
 
 var _health: Node
 var _player: CharacterBody3D
@@ -30,23 +31,30 @@ var _fall := -1.0
 
 
 func _ready() -> void:
-	add_to_group("raiders")
+	var room := get_parent()
+	var staying_down := room != null and SAVE.is_down(str(room.scene_file_path))
+	if staying_down:
+		process_mode = Node.PROCESS_MODE_DISABLED
+	else:
+		add_to_group("raiders")
 	collision_layer = 1
 	collision_mask = 1
 	_gravity = float(ProjectSettings.get_setting("physics/3d/default_gravity"))
-	_player = get_parent().get_node("Player") as CharacterBody3D
+	_player = room.get_node("Player") as CharacterBody3D
 	_player.add_to_group("player")
-	_health = _attach(self, "CombatHealth", MAX_HEALTH)
-	_health.connect("depleted", Callable(self, "_begin_fall"))
 	_attach(_player, "CombatHealth", PLAYER_MAX_HEALTH)
 	_attach(_player, "PlayerAttack", -1)
 	_attach_flash(_player)
-	_attach_raider_flash()
-	var room := get_parent()
 	if room.get_node_or_null("CombatHud") == null:
 		var hud := HUD.new()
 		hud.name = "CombatHud"
 		room.add_child.call_deferred(hud)
+	if staying_down:
+		queue_free()
+		return
+	_health = _attach(self, "CombatHealth", MAX_HEALTH)
+	_health.connect("depleted", Callable(self, "_begin_fall"))
+	_attach_raider_flash()
 
 
 func current_health() -> int:
@@ -70,6 +78,9 @@ func take_hit(amount: int) -> void:
 func _begin_fall() -> void:
 	if _fall >= 0.0:
 		return
+	var room := get_parent()
+	if room != null:
+		SAVE.remember_defeat(str(room.scene_file_path))
 	_fall = FALL_TIME
 	_tell = -1.0
 	_stagger = 0.0
