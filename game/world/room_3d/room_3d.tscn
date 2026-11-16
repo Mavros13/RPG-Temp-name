@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" uid="uid://is7jmnigl3ue" path="res://game/world/room_3d/room_3d.gd" id="1_room"]
 [ext_resource type="Script" uid="uid://cfu0yke3551lu" path="res://game/world/room_3d/player.gd" id="2_player"]
 [ext_resource type="PackedScene" path="res://game/ui/hud_3d/hud_3d.tscn" id="3_hud"]
 [ext_resource type="Script" uid="uid://braidercombat" path="res://game/combat/raider.gd" id="4_raider"]
+[ext_resource type="PackedScene" path="res://game/narrative/keeper_3d/keeper.tscn" id="5_keeper"]
 
 [node name="Room3D" type="Node3D"]
 script = ExtResource("1_room")
@@ -36,3 +37,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 5.8)
 script = ExtResource("4_raider")
 
 [node name="Hud3D" parent="." instance=ExtResource("3_hud")]
+
+[node name="Keeper" parent="." instance=ExtResource("5_keeper")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.55, 0, 6.45)
