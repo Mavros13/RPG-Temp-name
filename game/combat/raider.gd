@@ -8,6 +8,8 @@ const TELL_LEAN := -0.42
 const FALL_TIME := 0.55
 const FALL_TIP := 1.25
 const FALL_DROP := 0.42
+const STEP_GAP := 0.74
+const STEP_EPSILON := 0.22
 const MAX_HEALTH := 14
 const PLAYER_MAX_HEALTH := 8
 
@@ -18,6 +20,7 @@ const RAIDER_FLASH := preload("res://game/combat/raider_flash.gd")
 const HUD := preload("res://game/combat/combat_hud.gd")
 const PACK := preload("res://game/world/inventory_state.gd")
 const SAVE := preload("res://game/world/room_save.gd")
+const STEP := preload("res://game/audio/raider_step.wav")
 
 var _health: Node
 var _player: CharacterBody3D
@@ -28,6 +31,8 @@ var _pose := 0.0
 var _stagger := 0.0
 var _knock := Vector3.ZERO
 var _fall := -1.0
+var _steps: AudioStreamPlayer3D
+var _step_time := 0.0
 
 
 func _ready() -> void:
@@ -55,6 +60,7 @@ func _ready() -> void:
 	_health = _attach(self, "CombatHealth", MAX_HEALTH)
 	_health.connect("depleted", Callable(self, "_begin_fall"))
 	_attach_raider_flash()
+	_setup_steps()
 
 
 func current_health() -> int:
@@ -118,6 +124,31 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	_update_touch(delta)
 	_apply_pose(delta)
+	_update_steps(delta)
+
+
+func _setup_steps() -> void:
+	_steps = AudioStreamPlayer3D.new()
+	_steps.name = "RaiderSteps"
+	_steps.stream = STEP
+	_steps.volume_db = -16.0
+	_steps.unit_size = 4.0
+	add_child(_steps)
+
+
+func _update_steps(delta: float) -> void:
+	if _steps == null or _fall >= 0.0 or _tell >= 0.0 or _stagger > 0.0 or not is_on_floor():
+		_step_time = 0.0
+		return
+	var speed := Vector3(velocity.x, 0.0, velocity.z).length()
+	if speed <= STEP_EPSILON:
+		_step_time = 0.0
+		return
+	_step_time += delta
+	if _step_time < STEP_GAP:
+		return
+	_step_time = 0.0
+	_steps.play()
 
 
 func _update_fall(delta: float) -> void:
