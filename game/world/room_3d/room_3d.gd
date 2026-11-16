@@ -33,6 +33,7 @@ func _ready() -> void:
 	_place_passage()
 	_place_brazier_marks()
 	_place_heart()
+	_play_room_loop()
 
 
 func _setup_lighting() -> void:
@@ -106,6 +107,13 @@ func _add_south_opening(body: StaticBody3D, height: float, south_z: float, room_
 
 func _add_x_span(body: StaticBody3D, x0: float, x1: float, height: float, z: float) -> void:
 	_add_box(body, Vector3(x1 - x0, WALL_HEIGHT, WALL_THICKNESS), Vector3((x0 + x1) * 0.5, height, z))
+
+
+func _play_room_loop() -> void:
+	var music := AudioStreamPlayer.new()
+	music.name = "LitRoomLoop"
+	music.set_script(preload("res://game/world/room_3d/lit_room_music.gd"))
+	add_child(music)
 
 
 func _place_passage() -> void:
