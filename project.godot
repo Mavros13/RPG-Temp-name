@@ -22,3 +22,4 @@ window/size/viewport_height=720
 [rendering]
 
 renderer/rendering_method="forward_plus"
+lights_and_shadows/directional_shadow/size=2048
