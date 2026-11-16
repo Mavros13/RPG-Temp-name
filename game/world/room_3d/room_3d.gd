@@ -12,6 +12,7 @@ const DOOR_WIDTH := 2.0
 const FLOOR_SCENE := preload("res://assets/world/first_room/stone_floor_tile.glb")
 const WALL_SCENE := preload("res://assets/world/first_room/wall_segment.glb")
 const BRAZIER_SCENE := preload("res://assets/world/first_room/brazier.glb")
+const FIRE_CRACKLE := preload("res://game/audio/fire_crackle.wav")
 const HOSTILE_SCENE := preload("res://assets/characters/hostile_npc/hostile_npc.gltf")
 const SURFACE_SHADER := preload("res://game/world/room_3d/materials/room_surface.gdshader")
 const FIRE_SHADER := preload("res://game/world/room_3d/materials/room_fire.gdshader")
@@ -176,7 +177,24 @@ func _place_braziers() -> void:
 		brazier.position = at
 		_dress_tree(brazier)
 		_tune_fire_light(brazier)
+		_play_fire(brazier)
 		$Visuals/Braziers.add_child(brazier)
+		var crackle := brazier.get_node("FireCrackle") as AudioStreamPlayer3D
+		if not crackle.playing:
+			crackle.play()
+
+
+func _play_fire(brazier: Node) -> void:
+	var stream := FIRE_CRACKLE.duplicate() as AudioStreamWAV
+	stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	var crackle := AudioStreamPlayer3D.new()
+	crackle.name = "FireCrackle"
+	crackle.stream = stream
+	crackle.volume_db = -6.0
+	crackle.unit_size = 3.5
+	crackle.max_distance = 14.0
+	crackle.autoplay = true
+	brazier.add_child(crackle)
 
 
 func _tune_fire_light(brazier: Node) -> void:

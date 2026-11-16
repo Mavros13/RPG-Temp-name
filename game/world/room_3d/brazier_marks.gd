@@ -90,6 +90,7 @@ func _apply_marked(brazier: Node3D) -> void:
 	_dim_light(brazier)
 	_dim_meshes(brazier)
 	_add_mark(brazier)
+	_quiet_fire(brazier)
 
 
 func _dim_light(brazier: Node) -> void:
@@ -141,6 +142,13 @@ func _add_mark(brazier: Node3D) -> void:
 	ring.material_override = chalk
 	ring.position = Vector3(0.0, 0.04, 0.0)
 	brazier.add_child(ring)
+
+
+func _quiet_fire(brazier: Node) -> void:
+	var crackle := brazier.get_node_or_null("FireCrackle") as AudioStreamPlayer3D
+	if crackle == null:
+		return
+	crackle.stop()
 
 
 func _find_omni(node: Node) -> OmniLight3D:
