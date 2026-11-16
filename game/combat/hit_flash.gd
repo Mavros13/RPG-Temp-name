@@ -1,5 +1,6 @@
 extends Node
 
+const STACK := preload("res://game/combat/look_stack.gd")
 const FLASH_TIME := 0.15
 
 var flashing := false
@@ -7,7 +8,6 @@ var _left := 0.0
 var _bound := false
 var _material: StandardMaterial3D
 var _meshes: Array[MeshInstance3D] = []
-var _previous: Array[Material] = []
 
 
 func _ready() -> void:
@@ -74,15 +74,11 @@ func _apply() -> void:
 		_material.emission = Color(1.0, 0.32, 0.18)
 		_material.emission_energy_multiplier = 3.0
 		_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_previous.clear()
-	for mesh in _meshes:
-		_previous.append(mesh.material_override)
-		mesh.material_override = _material
+	var body := get_parent()
+	if body == null:
+		return
+	STACK.begin(body, self, _material, _meshes)
 
 
 func _restore() -> void:
-	for index in _meshes.size():
-		if index >= _previous.size():
-			break
-		_meshes[index].material_override = _previous[index]
-	_previous.clear()
+	STACK.end(get_parent(), self)
