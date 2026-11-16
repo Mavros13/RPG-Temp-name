@@ -1,6 +1,7 @@
 extends CharacterBody3D
 
 const SPEED := 3.6
+const TURN_RATE := 14.0
 const MODEL_SCENE := preload("res://assets/characters/player/player_adventurer.glb")
 const CAMERA_OFFSET := Vector3(0.0, 2.55, -3.15)
 const CAMERA_LOOK_HEIGHT := 1.2
@@ -78,7 +79,7 @@ func _physics_process(delta: float) -> void:
 	var direction := _camera_relative(input_dir)
 	if direction.length_squared() > 0.0001:
 		direction = direction.normalized()
-		_facing_yaw = atan2(direction.x, direction.z)
+		_facing_yaw = rotate_toward(_facing_yaw, atan2(direction.x, direction.z), TURN_RATE * delta)
 		model.rotation.y = _facing_yaw
 		velocity.x = direction.x * SPEED
 		velocity.z = direction.z * SPEED
