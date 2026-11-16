@@ -8,9 +8,13 @@ const ROOM_MIN_X := 0.45
 const ROOM_MAX_X := 9.55
 const ROOM_MIN_Z := 0.45
 const ROOM_MAX_Z := 7.55
+const MOUSE_SENS := 0.0028
 
 @onready var model: Node3D = $Model
 @onready var camera: Camera3D = $Camera3D
+
+var _yaw := 0.0
+var _look := true
 
 func _ready() -> void:
 	_ensure_move_actions()
@@ -20,6 +24,7 @@ func _ready() -> void:
 	camera.current = true
 	camera.fov = 58.0
 	_place_camera()
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
 func _setup_body() -> void:
@@ -67,14 +72,27 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 
+func set_mouse_look(enabled: bool) -> void:
+	_look = enabled
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED if enabled else Input.MOUSE_MODE_VISIBLE
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not _look or not (event is InputEventMouseMotion):
+		return
+	var motion := event as InputEventMouseMotion
+	_yaw -= motion.relative.x * MOUSE_SENS
+
+
 func _process(_delta: float) -> void:
 	_place_camera()
 
 
 func _camera_relative(input_dir: Vector2) -> Vector3:
-	# Heading comes from the chase offset, not the clamped camera, so a wall
+	# Heading comes from the orbit, not the clamped camera, so a wall
 	# that pulls the camera inside the player does not reverse the keys.
-	var forward := Vector3(-CAMERA_OFFSET.x, 0.0, -CAMERA_OFFSET.z)
+	var offset := _orbit_offset()
+	var forward := Vector3(-offset.x, 0.0, -offset.z)
 	if forward.length_squared() < 0.0001:
 		forward = Vector3(0.0, 0.0, 1.0)
 	forward = forward.normalized()
@@ -85,8 +103,12 @@ func _camera_relative(input_dir: Vector2) -> Vector3:
 	return right * input_dir.x + forward * (-input_dir.y)
 
 
+func _orbit_offset() -> Vector3:
+	return CAMERA_OFFSET.rotated(Vector3.UP, _yaw)
+
+
 func _place_camera() -> void:
-	var desired := global_position + CAMERA_OFFSET
+	var desired := global_position + _orbit_offset()
 	desired.x = clampf(desired.x, ROOM_MIN_X, ROOM_MAX_X)
 	desired.z = clampf(desired.z, ROOM_MIN_Z, ROOM_MAX_Z)
 	var flat := Vector2(desired.x - global_position.x, desired.z - global_position.z)

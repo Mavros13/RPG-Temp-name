@@ -12,18 +12,21 @@ const MODEL_SCENE := preload("res://assets/characters/player/player_adventurer.g
 const CAMERA_BACK := 3.15
 const CAMERA_HEIGHT := 2.55
 const CAMERA_LOOK_HEIGHT := 1.2
-const CAMERA_YAW_SHARPNESS := 6.0
 const CAMERA_ARM_SHARPNESS := 8.0
 const CAMERA_PROBE_RADIUS := 0.18
+const MOUSE_SENS := 0.0028
+const PITCH_MIN := -0.2
+const PITCH_MAX := 1.15
 
 @onready var model: Node3D = $Model
 @onready var camera: Camera3D = $Camera3D
 
 var _facing_yaw := 0.0
 var _camera_yaw := 0.0
+var _camera_pitch := 0.0
+var _orbit_distance := 1.0
 var _camera_arm := 0.0
-var _move_yaw := 0.0
-var _latched_input := Vector2.ZERO
+var _look := true
 var _camera_sphere: SphereShape3D
 
 
@@ -38,9 +41,12 @@ func _ready() -> void:
 	camera.fov = 58.0
 	_facing_yaw = model.rotation.y
 	_camera_yaw = _facing_yaw
-	_move_yaw = _facing_yaw
-	_camera_arm = _ideal_arm_length()
+	var raise := CAMERA_HEIGHT - CAMERA_LOOK_HEIGHT
+	_orbit_distance = Vector2(CAMERA_BACK, raise).length()
+	_camera_pitch = atan2(raise, CAMERA_BACK)
+	_camera_arm = _orbit_distance
 	_place_camera(0.0)
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
 func _setup_body() -> void:
@@ -98,20 +104,27 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 
+func set_mouse_look(enabled: bool) -> void:
+	_look = enabled
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED if enabled else Input.MOUSE_MODE_VISIBLE
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not _look or not (event is InputEventMouseMotion):
+		return
+	var motion := event as InputEventMouseMotion
+	_camera_yaw -= motion.relative.x * MOUSE_SENS
+	_camera_pitch = clampf(_camera_pitch + motion.relative.y * MOUSE_SENS, PITCH_MIN, PITCH_MAX)
+
+
 func _process(delta: float) -> void:
 	_place_camera(delta)
 
 
-# Held keys keep the heading they had when the chord changed, so the body
-# walks a straight line while the chase camera eases in behind the new facing.
 func _wish_direction(input_dir: Vector2) -> Vector3:
 	if input_dir.length_squared() <= 0.0001:
-		_latched_input = Vector2.ZERO
 		return Vector3.ZERO
-	if _latched_input.distance_squared_to(input_dir) > 0.0001:
-		_move_yaw = _camera_yaw
-		_latched_input = input_dir
-	var forward := Vector3(sin(_move_yaw), 0.0, cos(_move_yaw))
+	var forward := Vector3(sin(_camera_yaw), 0.0, cos(_camera_yaw))
 	var right := forward.cross(Vector3.UP)
 	if right.length_squared() < 0.0001:
 		right = Vector3(1.0, 0.0, 0.0)
@@ -120,22 +133,15 @@ func _wish_direction(input_dir: Vector2) -> Vector3:
 	return right * input_dir.x + forward * (-input_dir.y)
 
 
-func _ideal_offset(yaw: float) -> Vector3:
-	var behind := Vector3(-sin(yaw), 0.0, -cos(yaw))
-	return behind * CAMERA_BACK + Vector3(0.0, CAMERA_HEIGHT, 0.0)
-
-
-func _ideal_arm_length() -> float:
-	var pivot := Vector3(0.0, CAMERA_LOOK_HEIGHT, 0.0)
-	return _ideal_offset(_camera_yaw).distance_to(pivot)
+func _orbit_offset() -> Vector3:
+	var horizontal := cos(_camera_pitch) * _orbit_distance
+	var height := sin(_camera_pitch) * _orbit_distance
+	return Vector3(-sin(_camera_yaw) * horizontal, height, -cos(_camera_yaw) * horizontal)
 
 
 func _place_camera(delta: float) -> void:
-	if delta > 0.0:
-		var yaw_blend := 1.0 - exp(-CAMERA_YAW_SHARPNESS * delta)
-		_camera_yaw = lerp_angle(_camera_yaw, _facing_yaw, yaw_blend)
 	var pivot := global_position + Vector3(0.0, CAMERA_LOOK_HEIGHT, 0.0)
-	var desired := global_position + _ideal_offset(_camera_yaw)
+	var desired := pivot + _orbit_offset()
 	var allowed := _camera_clearance(pivot, desired)
 	if delta <= 0.0 or allowed < _camera_arm:
 		_camera_arm = allowed
