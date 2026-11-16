@@ -1,6 +1,7 @@
 extends Node
 
 const QUEST := preload("res://game/world/quest_state.gd")
+const HEART := preload("res://game/world/room_3d/dreamforge_heart.gd")
 const MARK_RANGE := 1.7
 const FIRE_SHADER := "res://game/world/room_3d/materials/room_fire.gdshader"
 const SURFACE_SHADER := "res://game/world/room_3d/materials/room_surface.gdshader"
@@ -35,17 +36,38 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _try_mark() -> void:
-	var player := get_tree().get_first_node_in_group("player") as Node3D
-	if player == null:
-		var room := get_parent()
-		if room != null:
-			player = room.get_node_or_null("Player") as Node3D
+	var player := _player()
 	if player == null:
 		return
+	if QUEST.all_names_read() and not QUEST.carrying_coal and not QUEST.delivered:
+		var source := _nearest(player, true)
+		if source != null and QUEST.take_coal():
+			source.set_meta("coal_taken", true)
+			HEART.sync_coal(player)
+		return
+	var best := _nearest(player, false)
+	if best == null:
+		return
+	_mark(best)
+
+
+func _player() -> Node3D:
+	var player := get_tree().get_first_node_in_group("player") as Node3D
+	if player != null:
+		return player
+	var room := get_parent()
+	if room == null:
+		return null
+	return room.get_node_or_null("Player") as Node3D
+
+
+func _nearest(player: Node3D, include_marked: bool) -> Node3D:
 	var best: Node3D = null
 	var best_dist := MARK_RANGE
 	for brazier in _braziers:
-		if not is_instance_valid(brazier) or brazier.has_meta("marked"):
+		if not is_instance_valid(brazier):
+			continue
+		if not include_marked and brazier.has_meta("marked"):
 			continue
 		var flat: Vector3 = brazier.global_position - player.global_position
 		flat.y = 0.0
@@ -53,9 +75,7 @@ func _try_mark() -> void:
 		if dist <= best_dist:
 			best = brazier
 			best_dist = dist
-	if best == null:
-		return
-	_mark(best)
+	return best
 
 
 func _mark(brazier: Node3D) -> void:

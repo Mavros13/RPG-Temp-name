@@ -50,6 +50,9 @@ func _show_health(amount: int) -> void:
 
 
 func set_unmarked(count: int) -> void:
+	if QUEST.delivered:
+		_show_objective(QUEST.HEART_ANSWER)
+		return
 	if count > 0:
 		_show_count("Unmarked", count)
 		return
@@ -62,10 +65,17 @@ func set_unmarked(count: int) -> void:
 
 
 func show_unread(count: int) -> void:
+	if QUEST.delivered:
+		_show_objective(QUEST.HEART_ANSWER)
+		return
 	if count > 0:
 		_show_count("Unread", count)
 		return
 	_show_objective(QUEST.COAL_OBJECTIVE)
+
+
+func show_heart_answer() -> void:
+	_show_objective(QUEST.HEART_ANSWER)
 
 
 func clear_quest() -> void:
