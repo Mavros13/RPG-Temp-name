@@ -141,7 +141,11 @@ func _setup_footsteps() -> void:
 
 func _update_footsteps(delta: float) -> void:
 	var speed := Vector3(velocity.x, 0.0, velocity.z).length()
-	if not is_on_floor() or speed <= GAIT_EPSILON:
+	if not is_on_floor():
+		_step_time = 0.0
+		_steps.stop()
+		return
+	if speed <= GAIT_EPSILON:
 		_step_time = 0.0
 		return
 	_step_time += delta
