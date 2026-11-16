@@ -2,6 +2,7 @@ extends Area3D
 
 const SELF := preload("res://game/world/passage.gd")
 const QUEST := preload("res://game/world/quest_state.gd")
+const FADE := preload("res://game/world/door_fade.gd")
 
 var _used := false
 
@@ -71,5 +72,10 @@ func _on_body_entered(body: Node) -> void:
 		return
 	if bool(get_meta("locked_until_delivery", false)) and not QUEST.delivered:
 		return
+	var fade := FADE.new()
+	fade.name = "DoorFade"
+	if not fade.claim(target):
+		fade.free()
+		return
 	_used = true
-	get_tree().call_deferred("change_scene_to_file", target)
+	get_tree().root.add_child(fade)
