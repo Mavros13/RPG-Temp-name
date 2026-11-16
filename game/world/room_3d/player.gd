@@ -10,9 +10,11 @@ const JUMP_VELOCITY := 4.8
 const MODEL_SCENE := preload("res://assets/characters/player/player_adventurer.glb")
 
 const CAMERA_BACK := 3.15
+const SPRINT_CAMERA_EXTRA := 0.5
 const CAMERA_HEIGHT := 2.55
 const CAMERA_LOOK_HEIGHT := 1.2
 const CAMERA_ARM_SHARPNESS := 8.0
+const CAMERA_SPRINT_SHARPNESS := 5.0
 const LOOK_BLEND := 0.42
 const CAMERA_PROBE_RADIUS := 0.18
 const MOUSE_SENS := 0.0028
@@ -41,6 +43,8 @@ var _aim_pitch := 0.0
 var _camera_yaw := 0.0
 var _camera_pitch := 0.0
 var _orbit_distance := 1.0
+var _walk_orbit := 1.0
+var _sprint_orbit := 1.0
 var _camera_arm := 0.0
 var _look := true
 var _camera_sphere: SphereShape3D
@@ -71,7 +75,9 @@ func _ready() -> void:
 	_camera_yaw = _facing_yaw
 	_aim_yaw = _facing_yaw
 	var raise := CAMERA_HEIGHT - CAMERA_LOOK_HEIGHT
-	_orbit_distance = Vector2(CAMERA_BACK, raise).length()
+	_walk_orbit = Vector2(CAMERA_BACK, raise).length()
+	_sprint_orbit = Vector2(CAMERA_BACK + SPRINT_CAMERA_EXTRA, raise).length()
+	_orbit_distance = _walk_orbit
 	_camera_pitch = atan2(raise, CAMERA_BACK)
 	_aim_pitch = _camera_pitch
 	_camera_arm = _orbit_distance
@@ -273,6 +279,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _process(delta: float) -> void:
 	_ease_look(delta)
+	_ease_sprint_camera(delta)
 	_place_camera(delta)
 
 
@@ -300,6 +307,18 @@ func _wish_direction(input_dir: Vector2) -> Vector3:
 	else:
 		right = right.normalized()
 	return right * input_dir.x + forward * (-input_dir.y)
+
+
+func _ease_sprint_camera(delta: float) -> void:
+	var moving := Vector3(velocity.x, 0.0, velocity.z).length() > GAIT_EPSILON
+	var target := _sprint_orbit if Input.is_action_pressed("sprint") and moving else _walk_orbit
+	if delta <= 0.0:
+		_orbit_distance = target
+		return
+	var blend := 1.0 - exp(-CAMERA_SPRINT_SHARPNESS * delta)
+	_orbit_distance = lerpf(_orbit_distance, target, blend)
+	if absf(_orbit_distance - target) < 0.002:
+		_orbit_distance = target
 
 
 func _orbit_offset() -> Vector3:
