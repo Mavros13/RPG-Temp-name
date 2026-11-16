@@ -3,6 +3,7 @@ extends CharacterBody3D
 const SPEED := 2.4
 const CONTACT_RANGE := 1.05
 const CONTACT_COOLDOWN := 0.8
+const CONTACT_TELL := 0.33
 const MAX_HEALTH := 14
 const PLAYER_MAX_HEALTH := 8
 
@@ -17,6 +18,7 @@ var _health: Node
 var _player: CharacterBody3D
 var _gravity := 9.8
 var _contact_wait := 0.0
+var _tell := -1.0
 var _stagger := 0.0
 var _knock := Vector3.ZERO
 
@@ -84,12 +86,28 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.y -= _gravity * delta
 	move_and_slide()
-	if _player.has_meta("defeated") or _stagger > 0.0 or _contact_wait > 0.0:
+	_update_touch(delta)
+
+
+func _update_touch(delta: float) -> void:
+	if _player.has_meta("defeated"):
+		_tell = -1.0
 		return
 	var flat := _player.global_position - global_position
 	flat.y = 0.0
-	if flat.length() > CONTACT_RANGE:
+	var in_range := flat.length() <= CONTACT_RANGE
+	if not in_range:
+		_tell = -1.0
 		return
+	if _contact_wait > 0.0:
+		return
+	if _tell < 0.0:
+		_tell = CONTACT_TELL
+		return
+	_tell = maxf(_tell - delta, 0.0)
+	if _tell > 0.0 or _stagger > 0.0:
+		return
+	_tell = -1.0
 	var stats := _player.get_node_or_null("CombatHealth")
 	if stats != null and stats.has_method("hurt"):
 		stats.call("hurt", PACK.contact_damage())
