@@ -4,6 +4,7 @@ extends CanvasLayer
 const QUEST := preload("res://game/world/quest_state.gd")
 const PACK := preload("res://game/world/inventory_state.gd")
 const SAVE := preload("res://game/world/room_save.gd")
+const DRINK := preload("res://game/audio/drink_sip.wav")
 const NOTE := preload("res://game/world/alcove/inscription.gd")
 const LIT_ROOM := "res://game/world/room_3d/room_3d.tscn"
 const MAIN_MENU := "res://game/ui/main_menu/main_menu.tscn"
@@ -470,7 +471,17 @@ func _drink_potion() -> void:
 		var stats := player.get_node_or_null("CombatHealth")
 		if stats != null and stats.has_method("heal"):
 			stats.call("heal", PACK.POTION_HEAL)
+			_play_drink()
 	_sync_inventory(true)
+
+
+func _play_drink() -> void:
+	var sip := AudioStreamPlayer.new()
+	sip.name = "DrinkSip"
+	sip.stream = DRINK
+	sip.volume_db = -10.0
+	add_child(sip)
+	sip.play()
 
 
 func _sync_inventory(force: bool) -> void:
