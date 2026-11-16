@@ -31,6 +31,7 @@ func _ready() -> void:
 	_place_hostile()
 	_place_dark_braziers()
 	_place_passage()
+	_play_hall_loop()
 
 
 func _setup_lighting() -> void:
@@ -84,6 +85,13 @@ func _add_north_opening(body: StaticBody3D, height: float, north_z: float) -> vo
 	_add_x_span(body, right, ROOM_X + overhang, height, north_z)
 	if not QUEST.delivered:
 		_add_box(body, Vector3(DOOR_WIDTH, WALL_HEIGHT, WALL_THICKNESS), Vector3(DOOR_CENTER_X, height, north_z))
+
+
+func _play_hall_loop() -> void:
+	var music := AudioStreamPlayer.new()
+	music.name = "HallLoop"
+	music.set_script(preload("res://game/world/chamber_2/hall_loop.gd"))
+	add_child(music)
 
 
 func _place_passage() -> void:
