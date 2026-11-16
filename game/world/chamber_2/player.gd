@@ -14,6 +14,8 @@ const BOB_HEIGHT := 0.06
 const LEAN_ANGLE := 0.16
 const POSE_SHARPNESS := 12.0
 const GAIT_EPSILON := 0.22
+const FOOTSTEP := preload("res://game/audio/footstep.wav")
+const WALK_STEP := 0.46
 
 @onready var model: Node3D = $Model
 @onready var camera: Camera3D = $Camera3D
@@ -25,6 +27,10 @@ var _bob_phase := 0.0
 var _bob_height := 0.0
 var _lean_pitch := 0.0
 var _lean_roll := 0.0
+var _steps: AudioStreamPlayer3D
+var _step_time := 0.0
+
+signal footstep_played
 
 func _ready() -> void:
 	_ensure_move_actions()
@@ -34,6 +40,7 @@ func _ready() -> void:
 	camera.current = true
 	camera.fov = 58.0
 	_place_camera()
+	_setup_footsteps()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
@@ -82,6 +89,7 @@ func _physics_process(delta: float) -> void:
 		velocity.y -= float(ProjectSettings.get_setting("physics/3d/default_gravity")) * delta
 	move_and_slide()
 	_apply_gait(delta)
+	_update_footsteps(delta)
 
 
 func _apply_gait(delta: float) -> void:
@@ -117,6 +125,28 @@ func _apply_gait(delta: float) -> void:
 	model.rotation.x = _lean_pitch
 	model.rotation.y = _facing_yaw
 	model.rotation.z = _lean_roll
+
+
+func _setup_footsteps() -> void:
+	_steps = AudioStreamPlayer3D.new()
+	_steps.name = "Footsteps"
+	_steps.stream = FOOTSTEP
+	_steps.volume_db = -8.0
+	_steps.unit_size = 4.0
+	add_child(_steps)
+
+
+func _update_footsteps(delta: float) -> void:
+	var speed := Vector3(velocity.x, 0.0, velocity.z).length()
+	if not is_on_floor() or speed <= GAIT_EPSILON:
+		_step_time = 0.0
+		return
+	_step_time += delta
+	if _step_time < WALK_STEP:
+		return
+	_step_time = 0.0
+	_steps.play()
+	footstep_played.emit()
 
 
 func set_mouse_look(enabled: bool) -> void:
