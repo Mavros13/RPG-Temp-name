@@ -5,6 +5,7 @@ const QUEST := preload("res://game/world/quest_state.gd")
 const PACK := preload("res://game/world/inventory_state.gd")
 const SAVE := preload("res://game/world/room_save.gd")
 const DRINK := preload("res://game/audio/drink_sip.wav")
+const COLLAPSE := preload("res://game/audio/collapse.wav")
 const NOTE := preload("res://game/world/alcove/inscription.gd")
 const LIT_ROOM := "res://game/world/room_3d/room_3d.tscn"
 const MAIN_MENU := "res://game/ui/main_menu/main_menu.tscn"
@@ -118,6 +119,7 @@ func _on_damaged(_amount: int, remaining: int) -> void:
 
 
 func _respawn() -> void:
+	_play_collapse()
 	var player := get_tree().get_first_node_in_group("player") as CharacterBody3D
 	var stats := player.get_node_or_null("CombatHealth") if player != null else _health
 	var maximum := 8
@@ -135,6 +137,16 @@ func _respawn() -> void:
 		return
 	announce_fall = true
 	get_tree().call_deferred("change_scene_to_file", LIT_ROOM)
+
+
+func _play_collapse() -> void:
+	var tone := AudioStreamPlayer.new()
+	tone.name = "Collapse"
+	tone.stream = COLLAPSE
+	tone.volume_db = -8.0
+	tone.finished.connect(tone.queue_free)
+	get_tree().root.add_child(tone)
+	tone.play()
 
 
 func _show_fall() -> void:
