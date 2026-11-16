@@ -4,6 +4,7 @@ const PACK := preload("res://game/world/inventory_state.gd")
 const SWING := preload("res://game/audio/swing.wav")
 const RANGE := 1.7
 const COOLDOWN := 0.45
+const STEP_DISTANCE := 0.42
 
 var _cooldown := 0.0
 var _queued := false
@@ -39,6 +40,33 @@ func _physics_process(delta: float) -> void:
 	var raider := _nearest_raider(player.global_position)
 	if raider != null and raider.has_method("take_hit"):
 		raider.call("take_hit", PACK.attack())
+	_step_forward(player, delta)
+
+
+func _step_forward(player: Node3D, delta: float) -> void:
+	if delta <= 0.0:
+		return
+	var body := player as CharacterBody3D
+	if body == null:
+		return
+	var forward := _body_forward(player)
+	if forward.length_squared() < 0.0001:
+		return
+	var saved := body.velocity
+	body.velocity = forward * (STEP_DISTANCE / delta)
+	body.move_and_slide()
+	body.velocity = saved
+
+
+func _body_forward(player: Node3D) -> Vector3:
+	var model := player.get_node_or_null("Model") as Node3D
+	var yaw := player.rotation.y
+	if model != null:
+		yaw = model.rotation.y
+	var forward := Vector3(sin(yaw), 0.0, cos(yaw))
+	if forward.length_squared() < 0.0001:
+		return Vector3.ZERO
+	return forward.normalized()
 
 
 func _nearest_raider(origin: Vector3) -> Node:
