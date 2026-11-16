@@ -1,21 +1,35 @@
 extends Node
 
+const CONNECT := preload("res://game/audio/connect.wav")
+
 signal damaged(amount: int, remaining: int)
 signal healed(amount: int, remaining: int)
 signal depleted
 
 @export var max_health := 8
 var health := 8
+var _connect: AudioStreamPlayer3D
 
 
 func _ready() -> void:
 	health = max_health
+	_connect = AudioStreamPlayer3D.new()
+	_connect.name = "Connect"
+	_connect.stream = CONNECT
+	_connect.volume_db = -4.0
+	_connect.unit_size = 4.0
+	var host := get_parent()
+	if host == null:
+		add_child(_connect)
+	else:
+		host.add_child(_connect)
 
 
 func hurt(amount: int) -> void:
 	if amount <= 0 or health <= 0:
 		return
 	health = maxi(health - amount, 0)
+	_connect.play()
 	damaged.emit(amount, health)
 	if health > 0:
 		return
