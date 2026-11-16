@@ -5,8 +5,11 @@ const SWING := preload("res://game/audio/swing.wav")
 const RANGE := 1.7
 const COOLDOWN := 0.45
 const STEP_DISTANCE := 0.42
+const SWING_TIME := 0.28
+const SWING_SPEED := 2.6
 
 var _cooldown := 0.0
+var _swing_time := 0.0
 var _queued := false
 var _swing: AudioStreamPlayer3D
 
@@ -23,8 +26,17 @@ func _unhandled_input(event: InputEvent) -> void:
 		_queued = true
 
 
+func is_swinging() -> bool:
+	return _swing_time > 0.0
+
+
+func swing_speed() -> float:
+	return SWING_SPEED
+
+
 func _physics_process(delta: float) -> void:
 	_cooldown = maxf(_cooldown - delta, 0.0)
+	_swing_time = maxf(_swing_time - delta, 0.0)
 	if _cooldown <= 0.000001:
 		_cooldown = 0.0
 	var pressed := _queued or Input.is_action_just_pressed(&"attack")
@@ -35,6 +47,7 @@ func _physics_process(delta: float) -> void:
 	var player := get_parent() as Node3D
 	if player == null or player.has_meta("defeated"):
 		return
+	_swing_time = SWING_TIME
 	_swing.play()
 	swing_played.emit()
 	var raider := _nearest_raider(player.global_position)

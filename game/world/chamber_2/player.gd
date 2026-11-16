@@ -78,12 +78,16 @@ func _bind_action(action: StringName, keys: Array) -> void:
 func _physics_process(delta: float) -> void:
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var direction := _camera_relative(input_dir)
+	var speed := SPEED
+	var swing := _swing_cap()
+	if swing >= 0.0:
+		speed = swing
 	if direction.length_squared() > 0.0001:
 		direction = direction.normalized()
 		_facing_yaw = rotate_toward(_facing_yaw, atan2(direction.x, direction.z), TURN_RATE * delta)
 		model.rotation.y = _facing_yaw
-		velocity.x = direction.x * SPEED
-		velocity.z = direction.z * SPEED
+		velocity.x = direction.x * speed
+		velocity.z = direction.z * speed
 	else:
 		velocity.x = 0.0
 		velocity.z = 0.0
@@ -180,6 +184,15 @@ func _unhandled_input(event: InputEvent) -> void:
 func _process(_delta: float) -> void:
 	_yaw = lerp_angle(_yaw, _aim_yaw, LOOK_BLEND)
 	_place_camera()
+
+
+func _swing_cap() -> float:
+	var attack := get_node_or_null("PlayerAttack")
+	if attack == null or not attack.has_method(&"is_swinging"):
+		return -1.0
+	if not attack.is_swinging():
+		return -1.0
+	return float(attack.swing_speed())
 
 
 func _camera_relative(input_dir: Vector2) -> Vector3:
