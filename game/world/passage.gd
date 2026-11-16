@@ -1,15 +1,18 @@
 extends Area3D
 
 const SELF := preload("res://game/world/passage.gd")
+const QUEST := preload("res://game/world/quest_state.gd")
 
 var _used := false
 
 
-static func place(parent: Node, at: Vector3, target_scene: String, node_name: String, sign_text: String) -> Area3D:
+static func place(parent: Node, at: Vector3, target_scene: String, node_name: String, sign_text: String, locked_until_delivery := false) -> Area3D:
 	var area := SELF.new() as Area3D
 	area.name = node_name
 	area.position = at
 	area.set_meta("target_scene", target_scene)
+	if locked_until_delivery:
+		area.set_meta("locked_until_delivery", true)
 	var shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
 	box.size = Vector3(1.5, 2.4, 1.4)
@@ -65,6 +68,8 @@ func _on_body_entered(body: Node) -> void:
 		return
 	var target := str(get_meta("target_scene", ""))
 	if target.is_empty():
+		return
+	if bool(get_meta("locked_until_delivery", false)) and not QUEST.delivered:
 		return
 	_used = true
 	get_tree().call_deferred("change_scene_to_file", target)
