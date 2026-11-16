@@ -2,6 +2,7 @@ extends Node3D
 
 const QUEST := preload("res://game/world/quest_state.gd")
 const PACK := preload("res://game/world/inventory_state.gd")
+const TONE := preload("res://game/audio/heart_tone.wav")
 const REACH := 1.7
 
 var _hud: Node
@@ -45,8 +46,19 @@ func _try_deliver() -> void:
 	sync_coal(player)
 	_answer()
 	_show_answer()
+	_play_tone()
 	if _hud != null and _hud.has_method("_sync_inventory"):
 		_hud.call("_sync_inventory", true)
+
+
+func _play_tone() -> void:
+	var tone := AudioStreamPlayer3D.new()
+	tone.name = "HeartTone"
+	tone.stream = TONE
+	tone.volume_db = -6.0
+	tone.unit_size = 4.0
+	add_child(tone)
+	tone.play()
 
 
 func _show_answer() -> void:
