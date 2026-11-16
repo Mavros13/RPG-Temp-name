@@ -3,7 +3,6 @@ extends CanvasLayer
 ## Attack and defense stay on this sheet. Health follows the player's combat health.
 const QUEST := preload("res://game/world/quest_state.gd")
 const PACK := preload("res://game/world/inventory_state.gd")
-const ATTACK := 4
 const DEFENSE := 2
 
 @onready var health_value: Label = %HealthValue
@@ -22,7 +21,7 @@ var _listed_potion := false
 
 
 func _ready() -> void:
-	attack_value.text = str(ATTACK)
+	attack_value.text = str(PACK.attack())
 	defense_value.text = str(DEFENSE)
 	_bind_inventory()
 	_bind_drink()

@@ -4,7 +4,7 @@ const SPEED := 2.4
 const CONTACT_RANGE := 1.05
 const CONTACT_DAMAGE := 1
 const CONTACT_COOLDOWN := 0.8
-const MAX_HEALTH := 4
+const MAX_HEALTH := 14
 const PLAYER_MAX_HEALTH := 8
 
 const HEALTH := preload("res://game/combat/health.gd")
