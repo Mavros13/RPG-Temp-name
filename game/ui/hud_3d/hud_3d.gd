@@ -6,6 +6,8 @@ const PACK := preload("res://game/world/inventory_state.gd")
 const SAVE := preload("res://game/world/room_save.gd")
 const DRINK := preload("res://game/audio/drink_sip.wav")
 const COLLAPSE := preload("res://game/audio/collapse.wav")
+const HEART := preload("res://game/audio/heartbeat.wav")
+const PULSE_RATE := 1.2
 const NOTE := preload("res://game/world/alcove/inscription.gd")
 const LIT_ROOM := "res://game/world/room_3d/room_3d.tscn"
 const MAIN_MENU := "res://game/ui/main_menu/main_menu.tscn"
@@ -38,6 +40,8 @@ var _note: Label
 var _note_left := 0.0
 var _controls: Label
 var _save_line: Label
+var _heart: AudioStreamPlayer
+var _pulse := 0.0
 
 
 func _ready() -> void:
@@ -53,6 +57,7 @@ func _ready() -> void:
 	menu_button.pressed.connect(_open_menu)
 	fall_label.visible = false
 	_build_note()
+	_setup_heart()
 	_controls = _make_controls_line()
 	add_child(_controls)
 	_save_line = _make_save_line()
@@ -68,6 +73,7 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_update_low_health(delta)
 	if _fall_left > 0.0:
 		_fall_left = maxf(_fall_left - delta, 0.0)
 		if _fall_left == 0.0:
@@ -160,6 +166,57 @@ func _on_healed(_amount: int, remaining: int) -> void:
 
 func _show_health(amount: int) -> void:
 	health_value.text = str(amount)
+	_update_low_health(0.0)
+
+
+func _setup_heart() -> void:
+	var stream := HEART.duplicate() as AudioStreamWAV
+	stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	stream.loop_begin = 0
+	stream.loop_end = stream.mix_rate
+	_heart = AudioStreamPlayer.new()
+	_heart.name = "Heartbeat"
+	_heart.stream = stream
+	_heart.volume_db = -22.0
+	add_child(_heart)
+
+
+func _health_low() -> bool:
+	if _health == null:
+		return false
+	var current := int(_health.get("health"))
+	var maximum := int(_health.get("max_health"))
+	return current > 0 and maximum > 0 and current * 4 <= maximum
+
+
+func _update_low_health(delta: float) -> void:
+	if health_value == null:
+		return
+	if not _health_low():
+		_rest_low_health()
+		return
+	if get_tree().paused:
+		if _heart != null and _heart.playing:
+			_heart.stream_paused = true
+		return
+	if _heart != null:
+		_heart.stream_paused = false
+		if not _heart.playing:
+			_heart.play()
+	if delta > 0.0:
+		_pulse += delta
+	var wave := 0.5 + 0.5 * sin(_pulse * TAU * PULSE_RATE)
+	health_value.modulate = Color(1.0, 0.8 + 0.2 * wave, 0.68 + 0.32 * wave)
+
+
+func _rest_low_health() -> void:
+	_pulse = 0.0
+	if health_value != null:
+		health_value.modulate = Color.WHITE
+	if _heart != null:
+		_heart.stream_paused = false
+		if _heart.playing:
+			_heart.stop()
 
 
 func set_unmarked(count: int) -> void:
