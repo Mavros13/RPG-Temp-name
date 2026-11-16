@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" uid="uid://dij7ddcihwjkx" path="res://game/ui/hud_3d/hud_3d.gd" id="1_hud"]
 
@@ -129,3 +129,37 @@ custom_minimum_size = Vector2(560, 0)
 theme_override_colors/font_color = Color(0.93, 0.84, 0.55, 1)
 autowrap_mode = 3
 text = "Read the mark on every brazier that stayed dark and bring those names back."
+
+[node name="Inventory" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+offset_left = 820.0
+offset_top = 48.0
+offset_right = 1104.0
+offset_bottom = 280.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Margin" type="MarginContainer" parent="Inventory"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
+
+[node name="Body" type="VBoxContainer" parent="Inventory/Margin"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="Inventory/Margin/Body"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.93, 0.84, 0.55, 1)
+text = "Inventory"
+
+[node name="InventoryItems" type="VBoxContainer" parent="Inventory/Margin/Body"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2

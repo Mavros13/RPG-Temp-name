@@ -12,14 +12,28 @@ const DEFENSE := 2
 @onready var unmarked_name: Label = %UnmarkedName
 @onready var unmarked_value: Label = %UnmarkedValue
 @onready var objective: Label = %Objective
+@onready var inventory: PanelContainer = %Inventory
+@onready var inventory_items: VBoxContainer = %InventoryItems
 
 var _health: Node
+var _listed_coal := false
 
 
 func _ready() -> void:
 	attack_value.text = str(ATTACK)
 	defense_value.text = str(DEFENSE)
+	_bind_inventory()
+	inventory.visible = false
+	_sync_inventory(true)
 	set_process(not _bind_health())
+
+
+func _physics_process(_delta: float) -> void:
+	if Input.is_action_just_pressed(&"inventory"):
+		inventory.visible = not inventory.visible
+		_sync_inventory(true)
+	elif inventory.visible:
+		_sync_inventory(false)
 
 
 func _process(_delta: float) -> void:
@@ -88,6 +102,36 @@ func _show_count(title: String, count: int) -> void:
 	unmarked_value.text = str(count)
 	unmarked_row.visible = true
 	objective.visible = false
+
+
+func _bind_inventory() -> void:
+	if not InputMap.has_action(&"inventory"):
+		InputMap.add_action(&"inventory", 0.2)
+	var event := InputEventKey.new()
+	event.physical_keycode = KEY_I
+	if not InputMap.action_has_event(&"inventory", event):
+		InputMap.action_add_event(&"inventory", event)
+
+
+func _sync_inventory(force: bool) -> void:
+	var carrying := QUEST.carrying_coal
+	if not force and inventory_items.get_child_count() > 0 and _listed_coal == carrying:
+		return
+	_listed_coal = carrying
+	for child in inventory_items.get_children():
+		inventory_items.remove_child(child)
+		child.free()
+	var line := Label.new()
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if carrying:
+		line.name = "Coal"
+		line.text = "Coal"
+		line.add_theme_color_override("font_color", Color(0.93, 0.84, 0.55))
+	else:
+		line.name = "Empty"
+		line.text = "Empty"
+		line.add_theme_color_override("font_color", Color(0.62, 0.6, 0.55))
+	inventory_items.add_child(line)
 
 
 func _show_objective(text: String) -> void:
