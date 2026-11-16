@@ -1,15 +1,20 @@
 extends Node
 
 const PACK := preload("res://game/world/inventory_state.gd")
+const SWING := preload("res://game/audio/swing.wav")
 const RANGE := 1.7
 const COOLDOWN := 0.45
 
 var _cooldown := 0.0
 var _queued := false
+var _swing: AudioStreamPlayer3D
+
+signal swing_played
 
 
 func _ready() -> void:
 	_bind_attack()
+	_setup_swing()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -28,6 +33,8 @@ func _physics_process(delta: float) -> void:
 	var player := get_parent() as Node3D
 	if player == null or player.has_meta("defeated"):
 		return
+	_swing.play()
+	swing_played.emit()
 	var raider := _nearest_raider(player.global_position)
 	if raider != null and raider.has_method("take_hit"):
 		raider.call("take_hit", PACK.attack())
@@ -59,3 +66,16 @@ func _bind_attack() -> void:
 	key.physical_keycode = KEY_SPACE
 	if not InputMap.action_has_event(&"attack", key):
 		InputMap.action_add_event(&"attack", key)
+
+
+func _setup_swing() -> void:
+	_swing = AudioStreamPlayer3D.new()
+	_swing.name = "Swing"
+	_swing.stream = SWING
+	_swing.volume_db = -5.0
+	_swing.unit_size = 4.0
+	var host := get_parent()
+	if host == null:
+		add_child(_swing)
+	else:
+		host.add_child(_swing)
