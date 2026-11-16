@@ -1,6 +1,7 @@
 extends Node
 
 const CONNECT := preload("res://game/audio/connect.wav")
+const HURT := preload("res://game/audio/hurt.wav")
 const NUMBER := preload("res://game/combat/damage_number.gd")
 
 signal damaged(amount: int, remaining: int)
@@ -10,6 +11,7 @@ signal depleted
 @export var max_health := 8
 var health := 8
 var _connect: AudioStreamPlayer3D
+var _hurt: AudioStreamPlayer3D
 
 
 func _ready() -> void:
@@ -24,6 +26,8 @@ func _ready() -> void:
 		add_child(_connect)
 	else:
 		host.add_child(_connect)
+		if host.is_in_group("player"):
+			_setup_hurt(host)
 
 
 func hurt(amount: int) -> void:
@@ -31,6 +35,8 @@ func hurt(amount: int) -> void:
 		return
 	health = maxi(health - amount, 0)
 	_connect.play()
+	if health > 0 and _hurt != null:
+		_hurt.play()
 	damaged.emit(amount, health)
 	_show_damage(amount)
 	if health > 0:
@@ -39,6 +45,15 @@ func hurt(amount: int) -> void:
 	if body != null and body.is_in_group("player"):
 		body.set_meta("defeated", true)
 	depleted.emit()
+
+
+func _setup_hurt(host: Node) -> void:
+	_hurt = AudioStreamPlayer3D.new()
+	_hurt.name = "Hurt"
+	_hurt.stream = HURT
+	_hurt.volume_db = -6.0
+	_hurt.unit_size = 4.0
+	host.add_child(_hurt)
 
 
 func _show_damage(amount: int) -> void:
