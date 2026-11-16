@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://q13egh7jm6n0" path="res://game/narrative/keeper_3d/keeper.gd" id="1_keeper"]
+
+[node name="Keeper" type="StaticBody3D"]
+script = ExtResource("1_keeper")
+
+[node name="Marker" type="Marker3D" parent="."]
