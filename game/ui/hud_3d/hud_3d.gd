@@ -3,6 +3,7 @@ extends CanvasLayer
 ## Attack and defense stay on this sheet. Health follows the player's combat health.
 const QUEST := preload("res://game/world/quest_state.gd")
 const PACK := preload("res://game/world/inventory_state.gd")
+const SAVE := preload("res://game/world/room_save.gd")
 
 @onready var health_value: Label = %HealthValue
 @onready var attack_value: Label = %AttackValue
@@ -24,6 +25,7 @@ func _ready() -> void:
 	defense_value.text = str(PACK.defense())
 	_bind_inventory()
 	_bind_drink()
+	_bind_save_keys()
 	inventory.visible = false
 	_sync_inventory(true)
 	set_process(not _bind_health())
@@ -35,6 +37,10 @@ func _physics_process(_delta: float) -> void:
 		_sync_inventory(true)
 	if Input.is_action_just_pressed(&"drink"):
 		_drink_potion()
+	if Input.is_action_just_pressed(&"quick_save"):
+		_save_room()
+	if Input.is_action_just_pressed(&"quick_load"):
+		_load_room()
 	elif inventory.visible:
 		_sync_inventory(false)
 
@@ -123,12 +129,74 @@ func _bind_inventory() -> void:
 
 
 func _bind_drink() -> void:
-	if not InputMap.has_action(&"drink"):
-		InputMap.add_action(&"drink", 0.2)
+	_bind_key(&"drink", KEY_1)
+
+
+func _bind_save_keys() -> void:
+	_bind_key(&"quick_save", KEY_F5)
+	_bind_key(&"quick_load", KEY_F9)
+
+
+func _bind_key(action: StringName, keycode: Key) -> void:
+	if not InputMap.has_action(action):
+		InputMap.add_action(action, 0.2)
 	var event := InputEventKey.new()
-	event.physical_keycode = KEY_1
-	if not InputMap.action_has_event(&"drink", event):
-		InputMap.action_add_event(&"drink", event)
+	event.physical_keycode = keycode
+	if not InputMap.action_has_event(action, event):
+		InputMap.action_add_event(action, event)
+
+
+func _save_room() -> void:
+	SAVE.write(_current_health())
+
+
+func _load_room() -> void:
+	var data := SAVE.read()
+	if data.is_empty():
+		return
+	PACK.has_potion = bool(data["has_potion"])
+	QUEST.restore(
+		data["marked"],
+		bool(data["ildra_read"]),
+		bool(data["soren_read"]),
+		bool(data["carrying_coal"]),
+		bool(data["heart_answered"])
+	)
+	var stats := _player_stats()
+	var amount := int(data["health"])
+	if stats != null and stats.has_method("restore"):
+		stats.call("restore", amount)
+		amount = int(stats.get("health"))
+	_show_health(amount)
+	_sync_inventory(true)
+	_show_saved_quest()
+
+
+func _current_health() -> int:
+	var stats := _player_stats()
+	if stats != null:
+		return int(stats.get("health"))
+	return int(health_value.text)
+
+
+func _player_stats() -> Node:
+	var player := get_tree().get_first_node_in_group("player")
+	if player == null:
+		return null
+	return player.get_node_or_null("CombatHealth")
+
+
+func _show_saved_quest() -> void:
+	if QUEST.delivered:
+		show_heart_answer()
+		return
+	if not QUEST.names_read.is_empty() or QUEST.all_names_read():
+		show_unread(QUEST.unread_count())
+		return
+	if QUEST.both_lit_marked():
+		set_unmarked(0)
+		return
+	set_unmarked(maxi(2 - QUEST.lit_marked.size(), 0))
 
 
 func _drink_potion() -> void:
