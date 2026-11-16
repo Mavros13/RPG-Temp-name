@@ -17,6 +17,7 @@ const SURFACE_SHADER := preload("res://game/world/room_3d/materials/room_surface
 const FIRE_SHADER := preload("res://game/world/room_3d/materials/room_fire.gdshader")
 const PASSAGE := preload("res://game/world/passage.gd")
 const BRAZIER_MARKS := preload("res://game/world/room_3d/brazier_marks.gd")
+const HEART := preload("res://game/world/room_3d/dreamforge_heart.gd")
 
 var _materials: Dictionary = {}
 
@@ -30,6 +31,7 @@ func _ready() -> void:
 	_place_hostile()
 	_place_passage()
 	_place_brazier_marks()
+	_place_heart()
 
 
 func _setup_lighting() -> void:
@@ -107,6 +109,14 @@ func _add_x_span(body: StaticBody3D, x0: float, x1: float, height: float, z: flo
 
 func _place_passage() -> void:
 	PASSAGE.place(self, Vector3(DOOR_CENTER_X, 1.1, 0.35), "res://game/world/chamber_2/chamber_2.tscn", "ChamberDoor", "Second chamber")
+
+
+func _place_heart() -> void:
+	var heart := HEART.new()
+	heart.name = "DreamforgeHeart"
+	heart.position = Vector3(7.35, 0.0, 2.2)
+	add_child(heart)
+	heart.setup(get_node_or_null("Hud3D"))
 
 
 func _place_brazier_marks() -> void:
