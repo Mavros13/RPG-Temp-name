@@ -14,10 +14,13 @@ const SAVE := preload("res://game/world/room_save.gd")
 @onready var objective: Label = %Objective
 @onready var inventory: PanelContainer = %Inventory
 @onready var inventory_items: VBoxContainer = %InventoryItems
+@onready var paused_label: Label = %Paused
 
 var _health: Node
 var _listed_coal := false
 var _listed_potion := false
+var _room_paused := false
+var _quieted: Array[AudioStreamPlayer3D] = []
 
 
 func _ready() -> void:
@@ -26,7 +29,10 @@ func _ready() -> void:
 	_bind_inventory()
 	_bind_drink()
 	_bind_save_keys()
+	_bind_pause()
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	inventory.visible = false
+	paused_label.visible = false
 	_sync_inventory(true)
 	set_process(not _bind_health())
 
@@ -41,6 +47,8 @@ func _physics_process(_delta: float) -> void:
 		_save_room()
 	if Input.is_action_just_pressed(&"quick_load"):
 		_load_room()
+	if Input.is_action_just_pressed(&"pause"):
+		_toggle_pause()
 	elif inventory.visible:
 		_sync_inventory(false)
 
@@ -135,6 +143,43 @@ func _bind_drink() -> void:
 func _bind_save_keys() -> void:
 	_bind_key(&"quick_save", KEY_F5)
 	_bind_key(&"quick_load", KEY_F9)
+
+
+func _bind_pause() -> void:
+	_bind_key(&"pause", KEY_ESCAPE)
+
+
+func _toggle_pause() -> void:
+	_room_paused = not _room_paused
+	if _room_paused:
+		_quiet_loops()
+		get_tree().paused = true
+	else:
+		get_tree().paused = false
+		_restore_loops()
+	paused_label.visible = _room_paused
+
+
+func _quiet_loops() -> void:
+	_quieted.clear()
+	_collect_loops(get_tree().root)
+
+
+func _collect_loops(node: Node) -> void:
+	for child in node.get_children():
+		var player := child as AudioStreamPlayer3D
+		if player != null and (player.name == "FireCrackle" or player.name == "Footsteps"):
+			if player.playing and not player.stream_paused:
+				player.stream_paused = true
+				_quieted.append(player)
+		_collect_loops(child)
+
+
+func _restore_loops() -> void:
+	for player in _quieted:
+		if is_instance_valid(player):
+			player.stream_paused = false
+	_quieted.clear()
 
 
 func _bind_key(action: StringName, keycode: Key) -> void:
