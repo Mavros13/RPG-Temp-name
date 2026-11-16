@@ -9,6 +9,7 @@ const LIT_ROOM := "res://game/world/room_3d/room_3d.tscn"
 const MAIN_MENU := "res://game/ui/main_menu/main_menu.tscn"
 const LIT_START := Vector3(4.0, 0.08, 3.2)
 const FALL_TIME := 1.6
+const NOTE_TIME := 0.9
 
 static var announce_fall := false
 
@@ -31,6 +32,8 @@ var _listed_potion := 0
 var _room_paused := false
 var _quieted: Array[AudioStreamPlayer3D] = []
 var _fall_left := 0.0
+var _note: Label
+var _note_left := 0.0
 
 
 func _ready() -> void:
@@ -45,6 +48,7 @@ func _ready() -> void:
 	pause_bar.visible = false
 	menu_button.pressed.connect(_open_menu)
 	fall_label.visible = false
+	_build_note()
 	if announce_fall:
 		announce_fall = false
 		_show_fall()
@@ -59,6 +63,10 @@ func _physics_process(delta: float) -> void:
 		_fall_left = maxf(_fall_left - delta, 0.0)
 		if _fall_left == 0.0:
 			fall_label.visible = false
+	if _note_left > 0.0:
+		_note_left = maxf(_note_left - delta, 0.0)
+		if _note_left == 0.0:
+			_note.visible = false
 	if Input.is_action_just_pressed(&"inventory"):
 		inventory.visible = not inventory.visible
 		_sync_inventory(true)
@@ -246,7 +254,9 @@ func _bind_key(action: StringName, keycode: Key) -> void:
 
 
 func _save_room() -> void:
-	SAVE.write(_current_health())
+	if not SAVE.write(_current_health()):
+		return
+	_show_note("Saved")
 
 
 func _load_room() -> void:
@@ -272,6 +282,34 @@ func _load_room() -> void:
 	_show_health(amount)
 	_sync_inventory(true)
 	_show_saved_quest()
+	_show_note("Loaded")
+
+
+func _build_note() -> void:
+	_note = Label.new()
+	_note.name = "SaveNote"
+	_note.visible = false
+	_note.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_note.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_note.add_theme_font_size_override("font_size", 28)
+	_note.add_theme_color_override("font_color", Color(0.93, 0.84, 0.55))
+	_note.anchor_left = 0.5
+	_note.anchor_top = 1.0
+	_note.anchor_right = 0.5
+	_note.anchor_bottom = 1.0
+	_note.offset_left = -140.0
+	_note.offset_top = -72.0
+	_note.offset_right = 140.0
+	_note.offset_bottom = -28.0
+	_note.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	add_child(_note)
+
+
+func _show_note(text: String) -> void:
+	_note.text = text
+	_note.visible = true
+	_note_left = NOTE_TIME
 
 
 func _apply_saved_raider() -> void:
