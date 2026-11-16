@@ -1,6 +1,7 @@
 extends Node
 
 const LINE := "The forge kept your name."
+const TONE := preload("res://game/audio/alcove_tone.wav")
 
 static var read := false
 
@@ -41,9 +42,21 @@ func _is_read_key(event: InputEvent) -> bool:
 
 
 func _show() -> void:
+	var first := not read
 	read = true
 	_open = true
 	_layer.visible = true
+	if first:
+		_play_tone()
+
+
+func _play_tone() -> void:
+	var tone := AudioStreamPlayer.new()
+	tone.name = "AlcoveTone"
+	tone.stream = TONE
+	tone.volume_db = -18.0
+	add_child(tone)
+	tone.play()
 
 
 func _hide() -> void:
