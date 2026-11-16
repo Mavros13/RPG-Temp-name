@@ -235,7 +235,9 @@ func _quiet_loops() -> void:
 func _collect_loops(node: Node) -> void:
 	for child in node.get_children():
 		var player := child as AudioStreamPlayer3D
-		if player != null and (player.name == "FireCrackle" or player.name == "Footsteps"):
+		if player != null and player.name == "Footsteps":
+			player.stop()
+		elif player != null and player.name == "FireCrackle":
 			if player.playing and not player.stream_paused:
 				player.stream_paused = true
 				_quieted.append(player)

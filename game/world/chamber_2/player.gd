@@ -44,6 +44,7 @@ func _ready() -> void:
 	camera.fov = 58.0
 	_place_camera()
 	_setup_footsteps()
+	_arm_step_pause()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
@@ -128,6 +129,14 @@ func _apply_gait(delta: float) -> void:
 	model.rotation.x = _lean_pitch
 	model.rotation.y = _facing_yaw
 	model.rotation.z = _lean_roll
+
+
+func _arm_step_pause() -> void:
+	var watch := Node.new()
+	watch.name = "StepPause"
+	watch.process_mode = Node.PROCESS_MODE_ALWAYS
+	watch.set_script(preload("res://game/world/step_pause.gd"))
+	add_child(watch)
 
 
 func _setup_footsteps() -> void:
