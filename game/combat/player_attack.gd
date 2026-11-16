@@ -24,11 +24,12 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _physics_process(delta: float) -> void:
 	_cooldown = maxf(_cooldown - delta, 0.0)
-	if Input.is_action_just_pressed(&"attack"):
-		_queued = true
-	if not _queued or _cooldown > 0.0:
-		return
+	if _cooldown <= 0.000001:
+		_cooldown = 0.0
+	var pressed := _queued or Input.is_action_just_pressed(&"attack")
 	_queued = false
+	if not pressed or _cooldown > 0.0:
+		return
 	_cooldown = COOLDOWN
 	var player := get_parent() as Node3D
 	if player == null or player.has_meta("defeated"):
