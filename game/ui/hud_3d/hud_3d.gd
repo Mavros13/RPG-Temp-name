@@ -121,16 +121,18 @@ func _sync_inventory(force: bool) -> void:
 	for child in inventory_items.get_children():
 		inventory_items.remove_child(child)
 		child.free()
-	var line := Label.new()
-	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for gear in ["Rusty Sword", "Leather Vest", "Minor Potion"]:
+		_add_inventory_line(gear, gear)
 	if carrying:
-		line.name = "Coal"
-		line.text = "Coal"
-		line.add_theme_color_override("font_color", Color(0.93, 0.84, 0.55))
-	else:
-		line.name = "Empty"
-		line.text = "Empty"
-		line.add_theme_color_override("font_color", Color(0.62, 0.6, 0.55))
+		_add_inventory_line("Coal", "Coal")
+
+
+func _add_inventory_line(item_name: String, label_text: String) -> void:
+	var line := Label.new()
+	line.name = item_name
+	line.text = label_text
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	line.add_theme_color_override("font_color", Color(0.93, 0.84, 0.55))
 	inventory_items.add_child(line)
 
 
