@@ -4,6 +4,11 @@ extends CanvasLayer
 const QUEST := preload("res://game/world/quest_state.gd")
 const PACK := preload("res://game/world/inventory_state.gd")
 const SAVE := preload("res://game/world/room_save.gd")
+const LIT_ROOM := "res://game/world/room_3d/room_3d.tscn"
+const LIT_START := Vector3(4.0, 0.08, 3.2)
+const FALL_TIME := 1.6
+
+static var announce_fall := false
 
 @onready var health_value: Label = %HealthValue
 @onready var attack_value: Label = %AttackValue
@@ -15,12 +20,14 @@ const SAVE := preload("res://game/world/room_save.gd")
 @onready var inventory: PanelContainer = %Inventory
 @onready var inventory_items: VBoxContainer = %InventoryItems
 @onready var paused_label: Label = %Paused
+@onready var fall_label: Label = %Fallen
 
 var _health: Node
 var _listed_coal := false
 var _listed_potion := false
 var _room_paused := false
 var _quieted: Array[AudioStreamPlayer3D] = []
+var _fall_left := 0.0
 
 
 func _ready() -> void:
@@ -33,11 +40,19 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	inventory.visible = false
 	paused_label.visible = false
+	fall_label.visible = false
+	if announce_fall:
+		announce_fall = false
+		_show_fall()
 	_sync_inventory(true)
 	set_process(not _bind_health())
 
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
+	if _fall_left > 0.0:
+		_fall_left = maxf(_fall_left - delta, 0.0)
+		if _fall_left == 0.0:
+			fall_label.visible = false
 	if Input.is_action_just_pressed(&"inventory"):
 		inventory.visible = not inventory.visible
 		_sync_inventory(true)
@@ -76,6 +91,33 @@ func _bind_health() -> bool:
 
 func _on_damaged(_amount: int, remaining: int) -> void:
 	_show_health(remaining)
+	if remaining <= 0:
+		_respawn()
+
+
+func _respawn() -> void:
+	var player := get_tree().get_first_node_in_group("player") as CharacterBody3D
+	var stats := player.get_node_or_null("CombatHealth") if player != null else _health
+	var maximum := 8
+	if stats != null:
+		maximum = int(stats.get("max_health"))
+		if stats.has_method("restore"):
+			stats.call("restore", maximum)
+	_show_health(maximum)
+	var here := get_tree().current_scene
+	if here != null and here.scene_file_path == LIT_ROOM:
+		if player != null:
+			player.velocity = Vector3.ZERO
+			player.global_position = LIT_START
+		_show_fall()
+		return
+	announce_fall = true
+	get_tree().call_deferred("change_scene_to_file", LIT_ROOM)
+
+
+func _show_fall() -> void:
+	fall_label.visible = true
+	_fall_left = FALL_TIME
 
 
 func _on_healed(_amount: int, remaining: int) -> void:
