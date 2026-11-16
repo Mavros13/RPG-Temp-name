@@ -246,8 +246,11 @@ func _collect_loops(node: Node) -> void:
 
 func _restore_loops() -> void:
 	for player in _quieted:
-		if is_instance_valid(player):
-			player.stream_paused = false
+		if not is_instance_valid(player):
+			continue
+		player.stream_paused = false
+		if player.name == "FireCrackle" and not player.playing:
+			player.play()
 	_quieted.clear()
 
 
