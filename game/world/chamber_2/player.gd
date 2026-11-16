@@ -9,12 +9,22 @@ const ROOM_MAX_X := 9.55
 const ROOM_MIN_Z := 0.45
 const ROOM_MAX_Z := 7.55
 const MOUSE_SENS := 0.0028
+const WALK_BOB_RATE := 9.5
+const BOB_HEIGHT := 0.06
+const LEAN_ANGLE := 0.16
+const POSE_SHARPNESS := 12.0
+const GAIT_EPSILON := 0.22
 
 @onready var model: Node3D = $Model
 @onready var camera: Camera3D = $Camera3D
 
 var _yaw := 0.0
 var _look := true
+var _facing_yaw := 0.0
+var _bob_phase := 0.0
+var _bob_height := 0.0
+var _lean_pitch := 0.0
+var _lean_roll := 0.0
 
 func _ready() -> void:
 	_ensure_move_actions()
@@ -59,7 +69,8 @@ func _physics_process(delta: float) -> void:
 	var direction := _camera_relative(input_dir)
 	if direction.length_squared() > 0.0001:
 		direction = direction.normalized()
-		model.rotation.y = atan2(direction.x, direction.z)
+		_facing_yaw = atan2(direction.x, direction.z)
+		model.rotation.y = _facing_yaw
 		velocity.x = direction.x * SPEED
 		velocity.z = direction.z * SPEED
 	else:
@@ -70,6 +81,42 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.y -= float(ProjectSettings.get_setting("physics/3d/default_gravity")) * delta
 	move_and_slide()
+	_apply_gait(delta)
+
+
+func _apply_gait(delta: float) -> void:
+	var flat := Vector3(velocity.x, 0.0, velocity.z)
+	var speed := flat.length()
+	var moving := speed > GAIT_EPSILON
+	var target_height := 0.0
+	var target_pitch := 0.0
+	var target_roll := 0.0
+	if moving:
+		_bob_phase += WALK_BOB_RATE * delta
+		target_height = sin(_bob_phase) * BOB_HEIGHT
+		var forward := Vector3(sin(_facing_yaw), 0.0, cos(_facing_yaw))
+		var right := forward.cross(Vector3.UP)
+		if right.length_squared() > 0.0001:
+			right = right.normalized()
+		else:
+			right = Vector3.RIGHT
+		var wish := flat / speed
+		target_pitch = -wish.dot(forward) * LEAN_ANGLE
+		target_roll = wish.dot(right) * LEAN_ANGLE
+	else:
+		_bob_phase = 0.0
+	var blend := 1.0 - exp(-POSE_SHARPNESS * delta)
+	_bob_height = lerpf(_bob_height, target_height, blend)
+	_lean_pitch = lerpf(_lean_pitch, target_pitch, blend)
+	_lean_roll = lerpf(_lean_roll, target_roll, blend)
+	if not moving and absf(_bob_height) < 0.001:
+		_bob_height = 0.0
+		_lean_pitch = 0.0
+		_lean_roll = 0.0
+	model.position.y = _bob_height
+	model.rotation.x = _lean_pitch
+	model.rotation.y = _facing_yaw
+	model.rotation.z = _lean_roll
 
 
 func set_mouse_look(enabled: bool) -> void:
