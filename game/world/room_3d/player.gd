@@ -117,6 +117,9 @@ func _physics_process(delta: float) -> void:
 		input_dir = Vector2.ZERO
 	var direction := _wish_direction(input_dir)
 	var top_speed := SPRINT_SPEED if Input.is_action_pressed("sprint") else SPEED
+	var swing := _swing_cap()
+	if swing >= 0.0:
+		top_speed = swing
 	var target := Vector3.ZERO
 	if direction.length_squared() > 0.0001:
 		direction = direction.normalized()
@@ -125,6 +128,8 @@ func _physics_process(delta: float) -> void:
 	model.rotation.y = _facing_yaw
 	var rate := ACCELERATION if target.length_squared() > 0.0 else DECELERATION
 	var horizontal := Vector3(velocity.x, 0.0, velocity.z).move_toward(target, rate * delta)
+	if swing >= 0.0 and horizontal.length() > swing:
+		horizontal = horizontal.normalized() * swing
 	velocity.x = horizontal.x
 	velocity.z = horizontal.z
 	var started_jump := false
@@ -274,6 +279,15 @@ func _process(delta: float) -> void:
 func _ease_look(_delta: float) -> void:
 	_camera_yaw = lerp_angle(_camera_yaw, _aim_yaw, LOOK_BLEND)
 	_camera_pitch = lerpf(_camera_pitch, _aim_pitch, LOOK_BLEND)
+
+
+func _swing_cap() -> float:
+	var attack := get_node_or_null("PlayerAttack")
+	if attack == null or not attack.has_method(&"is_swinging"):
+		return -1.0
+	if not attack.is_swinging():
+		return -1.0
+	return float(attack.swing_speed())
 
 
 func _wish_direction(input_dir: Vector2) -> Vector3:
