@@ -25,6 +25,8 @@ func _process(delta: float) -> void:
 	var body := get_parent()
 	if body != null and body.has_method("rest_step_bob"):
 		body.rest_step_bob(delta)
+	if body != null and body.has_method("rest_strafe_lean"):
+		body.rest_strafe_lean(delta)
 
 
 func _room() -> Node:
