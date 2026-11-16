@@ -1,5 +1,6 @@
 extends Node
 
+const QUEST := preload("res://game/world/quest_state.gd")
 const MARK_RANGE := 1.7
 const FIRE_SHADER := "res://game/world/room_3d/materials/room_fire.gdshader"
 const SURFACE_SHADER := "res://game/world/room_3d/materials/room_surface.gdshader"
@@ -12,10 +13,15 @@ var _braziers: Array[Node3D] = []
 
 func bind(parent: Node) -> void:
 	_bind_mark()
+	var index := 0
 	for child in parent.get_children():
 		if child is Node3D:
 			_braziers.append(child)
-	unmarked = _braziers.size()
+			if QUEST.is_lit_marked(index):
+				_apply_marked(child)
+			else:
+				unmarked += 1
+			index += 1
 
 
 func _physics_process(_delta: float) -> void:
@@ -53,12 +59,17 @@ func _try_mark() -> void:
 
 
 func _mark(brazier: Node3D) -> void:
+	QUEST.mark_lit(_braziers.find(brazier))
+	_apply_marked(brazier)
+	unmarked = maxi(unmarked - 1, 0)
+	marks_changed.emit(unmarked)
+
+
+func _apply_marked(brazier: Node3D) -> void:
 	brazier.set_meta("marked", true)
 	_dim_light(brazier)
 	_dim_meshes(brazier)
 	_add_mark(brazier)
-	unmarked = maxi(unmarked - 1, 0)
-	marks_changed.emit(unmarked)
 
 
 func _dim_light(brazier: Node) -> void:
