@@ -1,5 +1,7 @@
 extends CanvasLayer
 
+const NEAR_RANGE := 3.0
+
 var _label: Label
 var _flash: ColorRect
 var _bound: Node
@@ -34,15 +36,36 @@ func _process(delta: float) -> void:
 			player_hp = int(stats.get("health"))
 			player_max = int(stats.get("max_health"))
 			_bind_flash(stats)
-	var raider_text := "down"
-	if raider != null and is_instance_valid(raider):
-		var stats := raider.get_node_or_null("CombatHealth")
-		if stats != null:
-			raider_text = str(int(stats.get("health")))
+	var raider_text := ""
+	var raider_hp := _nearby_health(player, raider)
+	if raider_hp >= 0:
+		raider_text = "    Raider %d" % raider_hp
 	var down := ""
 	if player != null and player.has_meta("defeated"):
 		down = "  down"
-	_label.text = "You %d/%d%s    Raider %s" % [player_hp, player_max, down, raider_text]
+	_label.text = "You %d/%d%s%s" % [player_hp, player_max, down, raider_text]
+
+
+func _nearby_health(player: Node, raider: Node) -> int:
+	if player == null or raider == null or not is_instance_valid(raider):
+		return -1
+	if float(raider.get("_fall")) >= 0.0:
+		return -1
+	var stats := raider.get_node_or_null("CombatHealth")
+	if stats == null:
+		return -1
+	var health := int(stats.get("health"))
+	if health <= 0:
+		return -1
+	var origin := player as Node3D
+	var body := raider as Node3D
+	if origin == null or body == null:
+		return -1
+	var flat := body.global_position - origin.global_position
+	flat.y = 0.0
+	if flat.length() > NEAR_RANGE:
+		return -1
+	return health
 
 
 func _bind_flash(stats: Node) -> void:
