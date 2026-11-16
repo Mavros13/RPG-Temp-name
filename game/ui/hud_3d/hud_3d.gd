@@ -252,7 +252,7 @@ func _load_room() -> void:
 	var data := SAVE.read()
 	if data.is_empty():
 		return
-	PACK.has_potion = bool(data["has_potion"])
+	PACK.has_potion = int(data["potion_count"])
 	QUEST.restore(
 		data["marked"],
 		bool(data["ildra_read"]),

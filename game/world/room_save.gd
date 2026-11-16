@@ -15,7 +15,9 @@ static func exists() -> bool:
 static func write(health: int) -> bool:
 	var file := ConfigFile.new()
 	file.set_value("room", "health", health)
-	file.set_value("room", "has_potion", PACK.has_potion)
+	var potions := clampi(PACK.potion_count(), 0, 2)
+	file.set_value("room", "potion_count", potions)
+	file.set_value("room", "has_potion", potions > 0)
 	file.set_value("room", "carrying_coal", QUEST.carrying_coal)
 	file.set_value("room", "lit_marked", QUEST.lit_marked.size())
 	file.set_value("room", "marked_indices", _indices_text(QUEST.lit_marked))
@@ -38,9 +40,11 @@ static func read() -> Dictionary:
 	if file.load(PATH) != OK:
 		return {}
 	var marked := _indices_from(file)
+	var potions := _potion_count(file)
 	return {
 		"health": int(file.get_value("room", "health", 0)),
-		"has_potion": bool(file.get_value("room", "has_potion", true)),
+		"potion_count": potions,
+		"has_potion": potions > 0,
 		"carrying_coal": bool(file.get_value("room", "carrying_coal", false)),
 		"lit_marked": marked.size(),
 		"marked": marked,
@@ -48,6 +52,15 @@ static func read() -> Dictionary:
 		"soren_read": bool(file.get_value("room", "soren_read", false)),
 		"heart_answered": bool(file.get_value("room", "heart_answered", false)),
 	}
+
+
+static func _potion_count(file: ConfigFile) -> int:
+	if file.has_section_key("room", "potion_count"):
+		return clampi(int(file.get_value("room", "potion_count")), 0, 2)
+	var legacy = file.get_value("room", "has_potion", 1)
+	if legacy is bool:
+		return 1 if legacy else 0
+	return clampi(int(legacy), 0, 2)
 
 
 static func _indices_text(indices: Array) -> String:
