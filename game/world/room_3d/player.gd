@@ -77,6 +77,7 @@ func _ready() -> void:
 	_camera_arm = _orbit_distance
 	_place_camera(0.0)
 	_setup_footsteps()
+	_arm_step_pause()
 	_setup_land()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
@@ -214,6 +215,14 @@ func _setup_land() -> void:
 	_land.volume_db = -10.0
 	_land.unit_size = 4.0
 	add_child(_land)
+
+
+func _arm_step_pause() -> void:
+	var watch := Node.new()
+	watch.name = "StepPause"
+	watch.process_mode = Node.PROCESS_MODE_ALWAYS
+	watch.set_script(preload("res://game/world/step_pause.gd"))
+	add_child(watch)
 
 
 func _setup_footsteps() -> void:
